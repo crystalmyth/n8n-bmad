@@ -1,0 +1,185 @@
+{
+  "name": "Pattern: Format Conversion",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [220, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.com/data",
+        "options": {}
+      },
+      "name": "Fetch JSON Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [420, 300],
+      "typeVersion": 4
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// Normalize/flatten nested JSON\nreturn items.map(item => {\n  const data = item.json;\n  return {\n    json: {\n      id: data.id,\n      name: data.name,\n      email: data.contact?.email || '',\n      phone: data.contact?.phone || '',\n      address_street: data.address?.street || '',\n      address_city: data.address?.city || '',\n      address_country: data.address?.country || '',\n      created_at: data.created_at,\n      status: data.status\n    }\n  };\n});"
+      },
+      "name": "Normalize JSON",
+      "type": "n8n-nodes-base.code",
+      "position": [620, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {
+          "fileName": "=export_{{ $now.toFormat('yyyy-MM-dd') }}.csv"
+        }
+      },
+      "name": "Convert to CSV",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "position": [820, 200],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "mode": "jsonToxml",
+        "options": {
+          "rootName": "records"
+        }
+      },
+      "name": "Convert to XML",
+      "type": "n8n-nodes-base.xml",
+      "position": [820, 400],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=export_{{ $now.toFormat('yyyy-MM-dd') }}.csv",
+        "options": {}
+      },
+      "name": "Save CSV File",
+      "type": "n8n-nodes-base.writeFile",
+      "position": [1020, 200],
+      "typeVersion": 1,
+      "notes": "Save to local filesystem"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=export_{{ $now.toFormat('yyyy-MM-dd') }}.xml",
+        "options": {}
+      },
+      "name": "Save XML File",
+      "type": "n8n-nodes-base.writeFile",
+      "position": [1020, 400],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "csv_file",
+              "value": "=export_{{ $now.toFormat('yyyy-MM-dd') }}.csv"
+            },
+            {
+              "name": "xml_file",
+              "value": "=export_{{ $now.toFormat('yyyy-MM-dd') }}.xml"
+            }
+          ],
+          "number": [
+            {
+              "name": "record_count",
+              "value": "={{ $json.length }}"
+            }
+          ]
+        }
+      },
+      "name": "Output Summary",
+      "type": "n8n-nodes-base.set",
+      "position": [1220, 300],
+      "typeVersion": 2
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Fetch JSON Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch JSON Data": {
+      "main": [
+        [
+          {
+            "node": "Normalize JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize JSON": {
+      "main": [
+        [
+          {
+            "node": "Convert to CSV",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Convert to XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to CSV": {
+      "main": [
+        [
+          {
+            "node": "Save CSV File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to XML": {
+      "main": [
+        [
+          {
+            "node": "Save XML File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save CSV File": {
+      "main": [
+        [
+          {
+            "node": "Output Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  },
+  "meta": {
+    "description": "Format conversion pattern for transforming JSON to CSV and XML formats.",
+    "category": "data-transformation",
+    "usage": "Customize field mapping in Normalize JSON. Add additional output formats as needed."
+  }
+}

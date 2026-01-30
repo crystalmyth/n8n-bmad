@@ -1,0 +1,215 @@
+{
+  "name": "Pattern: Pagination Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [220, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "values": {
+          "number": [
+            {
+              "name": "page",
+              "value": 1
+            },
+            {
+              "name": "pageSize",
+              "value": 100
+            }
+          ],
+          "boolean": [
+            {
+              "name": "hasMore",
+              "value": true
+            }
+          ]
+        }
+      },
+      "name": "Initialize Pagination",
+      "type": "n8n-nodes-base.set",
+      "position": [420, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.hasMore }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "More Pages?",
+      "type": "n8n-nodes-base.if",
+      "position": [620, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "=https://api.example.com/items?page={{ $json.page }}&limit={{ $json.pageSize }}",
+        "options": {}
+      },
+      "name": "Fetch Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [820, 200],
+      "typeVersion": 4
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst currentPage = $('Initialize Pagination').first().json.page || 1;\nconst pageSize = $('Initialize Pagination').first().json.pageSize || 100;\n\n// Determine if more pages exist\n// Adjust based on your API's pagination response\nconst totalItems = response.total || response.totalCount || 0;\nconst currentCount = response.items?.length || response.data?.length || 0;\nconst hasMore = currentCount === pageSize && (currentPage * pageSize) < totalItems;\n\nconst items = response.items || response.data || [];\n\n// Return items with pagination metadata\nreturn items.map(item => ({\n  json: {\n    ...item,\n    _page: currentPage\n  }\n})).concat([{\n  json: {\n    _pagination: true,\n    page: currentPage + 1,\n    pageSize: pageSize,\n    hasMore: hasMore,\n    totalFetched: currentPage * pageSize\n  }\n}]);"
+      },
+      "name": "Extract & Check More",
+      "type": "n8n-nodes-base.code",
+      "position": [1020, 200],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json._pagination === true }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Is Pagination Data?",
+      "type": "n8n-nodes-base.if",
+      "position": [1220, 200],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "name": "Collect Data Items",
+      "type": "n8n-nodes-base.noOp",
+      "position": [1420, 100],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData"
+      },
+      "name": "Aggregate All Pages",
+      "type": "n8n-nodes-base.aggregate",
+      "position": [820, 400],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "const allItems = $input.first().json.data;\n\n// Filter out pagination metadata items\nconst dataItems = allItems.filter(item => !item._pagination);\n\n// Remove internal metadata\nreturn dataItems.map(item => {\n  const { _page, ...data } = item;\n  return { json: data };\n});"
+      },
+      "name": "Clean Up Results",
+      "type": "n8n-nodes-base.code",
+      "position": [1020, 400],
+      "typeVersion": 2
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Initialize Pagination",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initialize Pagination": {
+      "main": [
+        [
+          {
+            "node": "More Pages?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "More Pages?": {
+      "main": [
+        [
+          {
+            "node": "Fetch Page",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Aggregate All Pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Page": {
+      "main": [
+        [
+          {
+            "node": "Extract & Check More",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract & Check More": {
+      "main": [
+        [
+          {
+            "node": "Is Pagination Data?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Pagination Data?": {
+      "main": [
+        [
+          {
+            "node": "More Pages?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Collect Data Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate All Pages": {
+      "main": [
+        [
+          {
+            "node": "Clean Up Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  },
+  "meta": {
+    "description": "Pagination pattern for fetching all pages from paginated APIs.",
+    "category": "data-transformation",
+    "usage": "Adjust URL pattern and pagination detection logic for your API's response format."
+  }
+}

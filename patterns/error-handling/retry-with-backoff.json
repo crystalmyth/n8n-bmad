@@ -1,0 +1,219 @@
+{
+  "name": "Pattern: Retry with Exponential Backoff",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.retryCount < 3 }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Should Retry?",
+      "type": "n8n-nodes-base.if",
+      "position": [620, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "amount": "={{ Math.pow(2, $json.retryCount) }}",
+        "unit": "seconds"
+      },
+      "name": "Wait (Backoff)",
+      "type": "n8n-nodes-base.wait",
+      "position": [820, 200],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "values": {
+          "number": [
+            {
+              "name": "retryCount",
+              "value": "={{ ($json.retryCount || 0) + 1 }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Increment Retry",
+      "type": "n8n-nodes-base.set",
+      "position": [1020, 200],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "errorMessage": "Max retries exceeded"
+      },
+      "name": "Max Retries Exceeded",
+      "type": "n8n-nodes-base.stopAndError",
+      "position": [820, 400],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [220, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "values": {
+          "number": [
+            {
+              "name": "retryCount",
+              "value": 0
+            }
+          ]
+        }
+      },
+      "name": "Initialize Retry Count",
+      "type": "n8n-nodes-base.set",
+      "position": [420, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.com/endpoint",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "name": "API Call (Replace Me)",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1220, 200],
+      "typeVersion": 4,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.error === undefined }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Success?",
+      "type": "n8n-nodes-base.if",
+      "position": [1420, 200],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "name": "Success Output",
+      "type": "n8n-nodes-base.noOp",
+      "position": [1620, 100],
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "Should Retry?": {
+      "main": [
+        [
+          {
+            "node": "Wait (Backoff)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Max Retries Exceeded",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait (Backoff)": {
+      "main": [
+        [
+          {
+            "node": "Increment Retry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Increment Retry": {
+      "main": [
+        [
+          {
+            "node": "API Call (Replace Me)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Initialize Retry Count",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initialize Retry Count": {
+      "main": [
+        [
+          {
+            "node": "API Call (Replace Me)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API Call (Replace Me)": {
+      "main": [
+        [
+          {
+            "node": "Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success?": {
+      "main": [
+        [
+          {
+            "node": "Success Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Should Retry?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all"
+  },
+  "meta": {
+    "description": "Retry pattern with exponential backoff. Retries failed operations with increasing delays (1s, 2s, 4s).",
+    "category": "error-handling",
+    "usage": "Replace 'API Call (Replace Me)' with your actual operation. Adjust max retries in 'Should Retry?' node."
+  }
+}

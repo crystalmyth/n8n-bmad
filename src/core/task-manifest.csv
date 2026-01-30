@@ -1,0 +1,11 @@
+task_id,name,category,description,agents,input_required,output_type
+TASK-001,workflow-review,quality,"Review workflow for best practices and issues","architect,developer,qa",workflow_json,review_report
+TASK-002,expression-validate,validation,"Validate n8n expressions for syntax and runtime errors","developer",expression_string,validation_result
+TASK-003,security-scan,security,"Scan workflow for security vulnerabilities","security,devops",workflow_json,security_report
+TASK-004,documentation-generate,documentation,"Generate documentation from workflow","tech-writer,developer",workflow_json,markdown_doc
+TASK-005,performance-audit,optimization,"Audit workflow for performance issues","architect,developer",workflow_json,audit_report
+TASK-006,credential-audit,security,"Audit credential usage and rotation status","security,devops",credential_list,audit_report
+TASK-007,test-plan-generate,testing,"Generate test plan for workflow","qa,developer",workflow_spec,test_plan
+TASK-008,integration-design,architecture,"Design integration approach for external system","architect,integration",requirements,integration_spec
+TASK-009,error-handling-review,quality,"Review error handling implementation","developer,qa",workflow_json,review_report
+TASK-010,data-mapping-validate,validation,"Validate data transformations and mappings","data-analyst,developer",workflow_json,mapping_report

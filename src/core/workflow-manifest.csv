@@ -1,0 +1,7 @@
+workflow_id,name,category,description,primary_agent,supporting_agents,inputs,outputs
+WF-001,workflow-development,development,"End-to-end workflow development process","developer","architect,qa",requirements_doc,workflow_json
+WF-002,code-review,quality,"Workflow code review process","qa","developer,architect",workflow_json,review_report
+WF-003,deployment-pipeline,operations,"Deploy workflow to target environment","devops","developer,qa",workflow_json,deployment_status
+WF-004,incident-response,operations,"Respond to workflow incidents and outages","devops","developer,security",incident_report,resolution_report
+WF-005,requirements-elicitation,planning,"Gather and document requirements","ba","po,architect",stakeholder_input,requirements_doc
+WF-006,testing-cycle,testing,"Complete testing cycle for workflow","qa","developer",workflow_json,test_report

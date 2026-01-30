@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="WF-002" name="code-review" version="1.0.0">
+  <metadata>
+    <description>Workflow code review process ensuring quality and best practices</description>
+    <category>quality</category>
+    <primary_agent>qa</primary_agent>
+    <supporting_agents>developer,architect</supporting_agents>
+  </metadata>
+
+  <phases>
+    <phase id="1" name="preparation">
+      <description>Prepare for code review</description>
+      <agent>developer</agent>
+      <steps>
+        <step order="1">
+          <action>Ensure workflow is complete and tested</action>
+        </step>
+        <step order="2">
+          <action>Export workflow JSON for review</action>
+        </step>
+        <step order="3">
+          <action>Prepare documentation and test results</action>
+        </step>
+        <step order="4">
+          <action>Submit for review with context</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Workflow submitted with all materials</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="2" name="structural-review">
+      <description>Review workflow structure and organization</description>
+      <agent>architect</agent>
+      <steps>
+        <step order="1">
+          <action>Review overall workflow structure</action>
+          <checklist_ref>structural-checklist</checklist_ref>
+        </step>
+        <step order="2">
+          <action>Validate node naming conventions</action>
+        </step>
+        <step order="3">
+          <action>Check for proper error handling</action>
+        </step>
+        <step order="4">
+          <action>Review data flow and transformations</action>
+        </step>
+        <step order="5">
+          <action>Document structural findings</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Structural review complete</criterion>
+        <criterion>Findings documented</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="3" name="security-review">
+      <description>Review security aspects</description>
+      <agent>security</agent>
+      <steps>
+        <step order="1">
+          <action>Check credential usage</action>
+        </step>
+        <step order="2">
+          <action>Review sensitive data handling</action>
+        </step>
+        <step order="3">
+          <action>Validate input validation</action>
+        </step>
+        <step order="4">
+          <action>Check for injection vulnerabilities</action>
+        </step>
+        <step order="5">
+          <action>Document security findings</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Security review complete</criterion>
+        <criterion>No critical security issues</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="4" name="functional-review">
+      <description>Review functional correctness</description>
+      <agent>developer</agent>
+      <steps>
+        <step order="1">
+          <action>Review expression logic</action>
+        </step>
+        <step order="2">
+          <action>Verify conditional branches</action>
+        </step>
+        <step order="3">
+          <action>Check loop handling</action>
+        </step>
+        <step order="4">
+          <action>Validate API calls</action>
+        </step>
+        <step order="5">
+          <action>Document functional findings</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Functional review complete</criterion>
+        <criterion>Logic verified</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="5" name="feedback-consolidation">
+      <description>Consolidate and prioritize feedback</description>
+      <agent>qa</agent>
+      <steps>
+        <step order="1">
+          <action>Collect all review feedback</action>
+        </step>
+        <step order="2">
+          <action>Categorize by severity</action>
+        </step>
+        <step order="3">
+          <action>Prioritize required changes</action>
+        </step>
+        <step order="4">
+          <action>Communicate feedback to developer</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Feedback consolidated</criterion>
+        <criterion>Developer notified</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="6" name="remediation">
+      <description>Address review feedback</description>
+      <agent>developer</agent>
+      <steps>
+        <step order="1">
+          <action>Review consolidated feedback</action>
+        </step>
+        <step order="2">
+          <action>Address critical issues first</action>
+        </step>
+        <step order="3">
+          <action>Address remaining issues</action>
+        </step>
+        <step order="4">
+          <action>Re-test after changes</action>
+        </step>
+        <step order="5">
+          <action>Submit for re-review if needed</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>All issues addressed</criterion>
+        <criterion>Tests passing</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="7" name="approval">
+      <description>Final review and approval</description>
+      <agent>qa</agent>
+      <steps>
+        <step order="1">
+          <action>Verify all feedback addressed</action>
+        </step>
+        <step order="2">
+          <action>Perform final review</action>
+        </step>
+        <step order="3">
+          <action>Approve or request further changes</action>
+        </step>
+        <step order="4">
+          <action>Document approval</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Review approved</criterion>
+        <criterion>Ready for deployment</criterion>
+      </exit_criteria>
+    </phase>
+  </phases>
+
+  <artifacts>
+    <artifact name="workflow-json" phase="1">Exported workflow JSON</artifact>
+    <artifact name="review-request" phase="1">Review submission</artifact>
+    <artifact name="review-feedback" phase="5">Consolidated feedback</artifact>
+    <artifact name="approval-record" phase="7">Review approval</artifact>
+  </artifacts>
+</workflow>

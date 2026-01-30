@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<task id="TASK-001" name="workflow-review" version="1.0.0">
+  <metadata>
+    <description>Review workflow for best practices and potential issues</description>
+    <category>quality</category>
+    <agents>architect,developer,qa</agents>
+  </metadata>
+
+  <input>
+    <parameter name="workflow_json" type="file" required="true">
+      <description>The n8n workflow JSON to review</description>
+    </parameter>
+    <parameter name="review_type" type="enum" required="false" default="standard">
+      <options>quick,standard,thorough</options>
+      <description>Level of review depth</description>
+    </parameter>
+  </input>
+
+  <output>
+    <artifact name="review_report" type="markdown">
+      <description>Comprehensive review report with findings</description>
+    </artifact>
+  </output>
+
+  <steps>
+    <step id="1" name="load-workflow">
+      <action>Parse and validate workflow JSON structure</action>
+      <validation>
+        <check>JSON is valid</check>
+        <check>Required fields present (name, nodes, connections)</check>
+      </validation>
+    </step>
+
+    <step id="2" name="check-structure">
+      <action>Review workflow structure and organization</action>
+      <checks>
+        <check category="naming">
+          <description>Node names follow conventions</description>
+          <rule>Names should be descriptive and use snake_case</rule>
+          <severity>medium</severity>
+        </check>
+        <check category="organization">
+          <description>Workflow has logical flow</description>
+          <rule>Clear path from trigger to output</rule>
+          <severity>medium</severity>
+        </check>
+        <check category="complexity">
+          <description>Workflow is not overly complex</description>
+          <rule>Consider sub-workflows for 15+ nodes</rule>
+          <severity>low</severity>
+        </check>
+      </checks>
+    </step>
+
+    <step id="3" name="check-error-handling">
+      <action>Review error handling implementation</action>
+      <checks>
+        <check category="error-workflow">
+          <description>Error workflow is configured</description>
+          <rule>Production workflows should have error workflow</rule>
+          <severity>high</severity>
+        </check>
+        <check category="try-catch">
+          <description>Critical operations have error handling</description>
+          <rule>External API calls should have error branches</rule>
+          <severity>high</severity>
+        </check>
+        <check category="retry">
+          <description>Transient failures have retry logic</description>
+          <rule>Use retry with backoff for API calls</rule>
+          <severity>medium</severity>
+        </check>
+      </checks>
+    </step>
+
+    <step id="4" name="check-security">
+      <action>Review security aspects</action>
+      <checks>
+        <check category="credentials">
+          <description>No hardcoded credentials</description>
+          <rule>All secrets must be in credential store</rule>
+          <severity>critical</severity>
+        </check>
+        <check category="sensitive-data">
+          <description>Sensitive data not exposed</description>
+          <rule>PII should not be logged in execution data</rule>
+          <severity>critical</severity>
+        </check>
+        <check category="input-validation">
+          <description>External inputs are validated</description>
+          <rule>Webhook payloads should be validated</rule>
+          <severity>high</severity>
+        </check>
+      </checks>
+    </step>
+
+    <step id="5" name="check-data">
+      <action>Review data handling and transformations</action>
+      <checks>
+        <check category="null-handling">
+          <description>Null values handled properly</description>
+          <rule>Use nullish coalescing for optional fields</rule>
+          <severity>medium</severity>
+        </check>
+        <check category="type-safety">
+          <description>Data types are consistent</description>
+          <rule>Explicit type conversions where needed</rule>
+          <severity>medium</severity>
+        </check>
+      </checks>
+    </step>
+
+    <step id="6" name="check-performance">
+      <action>Review performance considerations</action>
+      <checks>
+        <check category="api-calls">
+          <description>API calls are optimized</description>
+          <rule>Batch requests where possible</rule>
+          <severity>medium</severity>
+        </check>
+        <check category="large-data">
+          <description>Large datasets handled efficiently</description>
+          <rule>Use pagination and batching</rule>
+          <severity>medium</severity>
+        </check>
+      </checks>
+    </step>
+
+    <step id="7" name="generate-report">
+      <action>Generate comprehensive review report</action>
+      <template>
+        ## Workflow Review Report
+
+        **Workflow:** {workflow_name}
+        **Review Date:** {date}
+        **Review Type:** {review_type}
+
+        ### Summary
+        - Total Issues: {total_issues}
+        - Critical: {critical_count}
+        - High: {high_count}
+        - Medium: {medium_count}
+        - Low: {low_count}
+
+        ### Findings
+
+        {findings_list}
+
+        ### Recommendations
+
+        {recommendations}
+      </template>
+    </step>
+  </steps>
+</task>

@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="WF-005" name="requirements-elicitation" version="1.0.0">
+  <metadata>
+    <description>Gather and document automation requirements systematically</description>
+    <category>planning</category>
+    <primary_agent>ba</primary_agent>
+    <supporting_agents>po,architect</supporting_agents>
+  </metadata>
+
+  <phases>
+    <phase id="1" name="preparation">
+      <description>Prepare for requirements gathering</description>
+      <agent>ba</agent>
+      <steps>
+        <step order="1">
+          <action>Identify stakeholders</action>
+        </step>
+        <step order="2">
+          <action>Schedule discovery sessions</action>
+        </step>
+        <step order="3">
+          <action>Gather existing documentation</action>
+        </step>
+        <step order="4">
+          <action>Prepare interview questions</action>
+          <reference>questions.csv</reference>
+        </step>
+        <step order="5">
+          <action>Set up collaboration space</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Stakeholders identified</criterion>
+        <criterion>Sessions scheduled</criterion>
+        <criterion>Questions prepared</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="2" name="discovery">
+      <description>Conduct discovery sessions</description>
+      <agent>ba</agent>
+      <steps>
+        <step order="1">
+          <action>Conduct stakeholder interviews</action>
+        </step>
+        <step order="2">
+          <action>Map current process (As-Is)</action>
+        </step>
+        <step order="3">
+          <action>Identify pain points and opportunities</action>
+        </step>
+        <step order="4">
+          <action>Document system interactions</action>
+        </step>
+        <step order="5">
+          <action>Capture data requirements</action>
+        </step>
+        <step order="6">
+          <action>Note assumptions and constraints</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>All stakeholders interviewed</criterion>
+        <criterion>Current process mapped</criterion>
+        <criterion>Pain points documented</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="3" name="analysis">
+      <description>Analyze gathered information</description>
+      <agent>ba</agent>
+      <steps>
+        <step order="1">
+          <action>Consolidate discovery findings</action>
+        </step>
+        <step order="2">
+          <action>Identify automation opportunities</action>
+        </step>
+        <step order="3">
+          <action>Assess technical feasibility</action>
+          <collaborate>architect</collaborate>
+        </step>
+        <step order="4">
+          <action>Estimate business value</action>
+        </step>
+        <step order="5">
+          <action>Prioritize requirements</action>
+          <collaborate>po</collaborate>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Findings consolidated</criterion>
+        <criterion>Feasibility assessed</criterion>
+        <criterion>Requirements prioritized</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="4" name="documentation">
+      <description>Document requirements formally</description>
+      <agent>ba</agent>
+      <steps>
+        <step order="1">
+          <action>Write business requirements</action>
+        </step>
+        <step order="2">
+          <action>Define functional requirements</action>
+        </step>
+        <step order="3">
+          <action>Specify non-functional requirements</action>
+        </step>
+        <step order="4">
+          <action>Create workflow specifications</action>
+          <template>templates/n8n-specific/workflow-spec.md</template>
+        </step>
+        <step order="5">
+          <action>Document data requirements</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Requirements documented</criterion>
+        <criterion>Workflow specs created</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="5" name="validation">
+      <description>Validate requirements with stakeholders</description>
+      <agent>ba</agent>
+      <steps>
+        <step order="1">
+          <action>Review requirements with stakeholders</action>
+        </step>
+        <step order="2">
+          <action>Clarify ambiguities</action>
+        </step>
+        <step order="3">
+          <action>Resolve conflicts</action>
+        </step>
+        <step order="4">
+          <action>Obtain stakeholder sign-off</action>
+        </step>
+        <step order="5">
+          <action>Baseline requirements</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Requirements validated</criterion>
+        <criterion>Sign-off obtained</criterion>
+        <criterion>Baseline established</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="6" name="handoff">
+      <description>Hand off to development team</description>
+      <agent>po</agent>
+      <steps>
+        <step order="1">
+          <action>Create user stories from requirements</action>
+          <template>templates/agile/story.md</template>
+        </step>
+        <step order="2">
+          <action>Define acceptance criteria</action>
+        </step>
+        <step order="3">
+          <action>Add to product backlog</action>
+        </step>
+        <step order="4">
+          <action>Conduct backlog refinement</action>
+        </step>
+        <step order="5">
+          <action>Prioritize for upcoming sprint</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>User stories created</criterion>
+        <criterion>Backlog updated</criterion>
+        <criterion>Ready for development</criterion>
+      </exit_criteria>
+    </phase>
+  </phases>
+
+  <artifacts>
+    <artifact name="stakeholder-list" phase="1">List of stakeholders</artifact>
+    <artifact name="discovery-notes" phase="2">Interview and discovery notes</artifact>
+    <artifact name="process-map" phase="2">As-Is process map</artifact>
+    <artifact name="requirements-doc" phase="4">Requirements document</artifact>
+    <artifact name="workflow-specs" phase="4">Workflow specifications</artifact>
+    <artifact name="user-stories" phase="6">User stories</artifact>
+  </artifacts>
+</workflow>

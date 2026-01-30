@@ -1,0 +1,170 @@
+{
+  "name": "Pattern: API Orchestration",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [220, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.com/users/{{ $json.user_id }}",
+        "options": {}
+      },
+      "name": "Fetch User",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [420, 200],
+      "typeVersion": 4
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.com/orders?user_id={{ $json.user_id }}",
+        "options": {}
+      },
+      "name": "Fetch Orders",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [420, 400],
+      "typeVersion": 4
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "id",
+              "field2": "user_id"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Merge Results",
+      "type": "n8n-nodes-base.merge",
+      "position": [620, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.com/enrichment",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "user_id",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Enrich Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [820, 300],
+      "typeVersion": 4
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "user.name",
+              "value": "={{ $json.user?.name }}"
+            },
+            {
+              "name": "user.email",
+              "value": "={{ $json.user?.email }}"
+            }
+          ],
+          "number": [
+            {
+              "name": "orders.count",
+              "value": "={{ $json.orders?.length || 0 }}"
+            },
+            {
+              "name": "orders.total",
+              "value": "={{ $json.orders?.reduce((sum, o) => sum + o.amount, 0) || 0 }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Format Output",
+      "type": "n8n-nodes-base.set",
+      "position": [1020, 300],
+      "typeVersion": 2
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Fetch User",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch User": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Orders": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [
+          {
+            "node": "Enrich Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrich Data": {
+      "main": [
+        [
+          {
+            "node": "Format Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  },
+  "meta": {
+    "description": "API orchestration pattern that fetches data from multiple sources in parallel, merges, and enriches.",
+    "category": "integration",
+    "usage": "Replace API endpoints with your actual services. Add error handling for production use."
+  }
+}

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/your-org/n8n-bmad/docs
+    about: Check the documentation first
+  - name: Discussions
+    url: https://github.com/your-org/n8n-bmad/discussions
+    about: Ask questions and get help from the community

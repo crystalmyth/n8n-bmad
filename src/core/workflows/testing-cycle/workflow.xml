@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="WF-006" name="testing-cycle" version="1.0.0">
+  <metadata>
+    <description>Complete testing cycle for n8n workflows</description>
+    <category>testing</category>
+    <primary_agent>qa</primary_agent>
+    <supporting_agents>developer</supporting_agents>
+  </metadata>
+
+  <phases>
+    <phase id="1" name="test-planning">
+      <description>Plan the testing approach</description>
+      <agent>qa</agent>
+      <steps>
+        <step order="1">
+          <action>Review workflow specification</action>
+        </step>
+        <step order="2">
+          <action>Review acceptance criteria</action>
+        </step>
+        <step order="3">
+          <action>Identify test scenarios</action>
+        </step>
+        <step order="4">
+          <action>Determine test types needed</action>
+          <reference>test-types.csv</reference>
+        </step>
+        <step order="5">
+          <action>Create test plan</action>
+          <template>templates/testing/test-plan.md</template>
+        </step>
+        <step order="6">
+          <action>Estimate testing effort</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Test plan created</criterion>
+        <criterion>Test types identified</criterion>
+        <criterion>Effort estimated</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="2" name="test-design">
+      <description>Design test cases</description>
+      <agent>qa</agent>
+      <steps>
+        <step order="1">
+          <action>Write test cases for happy paths</action>
+        </step>
+        <step order="2">
+          <action>Write test cases for error paths</action>
+        </step>
+        <step order="3">
+          <action>Write test cases for edge cases</action>
+        </step>
+        <step order="4">
+          <action>Design test data sets</action>
+        </step>
+        <step order="5">
+          <action>Review test coverage</action>
+        </step>
+        <step order="6">
+          <action>Get test case approval</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Test cases documented</criterion>
+        <criterion>Test data prepared</criterion>
+        <criterion>Coverage adequate</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="3" name="environment-setup">
+      <description>Prepare test environment</description>
+      <agent>qa</agent>
+      <steps>
+        <step order="1">
+          <action>Verify test environment availability</action>
+        </step>
+        <step order="2">
+          <action>Configure test credentials</action>
+        </step>
+        <step order="3">
+          <action>Deploy workflow to test environment</action>
+        </step>
+        <step order="4">
+          <action>Prepare mock services if needed</action>
+        </step>
+        <step order="5">
+          <action>Load test data</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Environment ready</criterion>
+        <criterion>Workflow deployed</criterion>
+        <criterion>Data loaded</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="4" name="test-execution">
+      <description>Execute test cases</description>
+      <agent>qa</agent>
+      <steps>
+        <step order="1">
+          <action>Execute happy path tests</action>
+        </step>
+        <step order="2">
+          <action>Execute error path tests</action>
+        </step>
+        <step order="3">
+          <action>Execute edge case tests</action>
+        </step>
+        <step order="4">
+          <action>Execute integration tests</action>
+        </step>
+        <step order="5">
+          <action>Execute performance tests</action>
+          <condition>If performance testing required</condition>
+        </step>
+        <step order="6">
+          <action>Document test results</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>All test cases executed</criterion>
+        <criterion>Results documented</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="5" name="defect-management">
+      <description>Manage discovered defects</description>
+      <agent>qa</agent>
+      <steps>
+        <step order="1">
+          <action>Log discovered defects</action>
+          <template>templates/agile/bug-report.md</template>
+        </step>
+        <step order="2">
+          <action>Prioritize defects</action>
+        </step>
+        <step order="3">
+          <action>Assign to developers</action>
+        </step>
+        <step order="4">
+          <action>Track defect resolution</action>
+        </step>
+        <step order="5">
+          <action>Verify defect fixes</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>All critical defects resolved</criterion>
+        <criterion>Fixes verified</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="6" name="regression-testing">
+      <description>Verify fixes don't break existing functionality</description>
+      <agent>qa</agent>
+      <steps>
+        <step order="1">
+          <action>Identify regression test scope</action>
+        </step>
+        <step order="2">
+          <action>Execute regression tests</action>
+        </step>
+        <step order="3">
+          <action>Verify no new defects introduced</action>
+        </step>
+        <step order="4">
+          <action>Document regression results</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Regression tests pass</criterion>
+        <criterion>No new defects</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="7" name="test-closure">
+      <description>Close testing cycle</description>
+      <agent>qa</agent>
+      <steps>
+        <step order="1">
+          <action>Compile test results</action>
+        </step>
+        <step order="2">
+          <action>Calculate test metrics</action>
+        </step>
+        <step order="3">
+          <action>Create test report</action>
+          <template>templates/testing/test-report.md</template>
+        </step>
+        <step order="4">
+          <action>Provide go/no-go recommendation</action>
+        </step>
+        <step order="5">
+          <action>Archive test artifacts</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Test report complete</criterion>
+        <criterion>Recommendation provided</criterion>
+        <criterion>Artifacts archived</criterion>
+      </exit_criteria>
+    </phase>
+  </phases>
+
+  <artifacts>
+    <artifact name="test-plan" phase="1">Test plan document</artifact>
+    <artifact name="test-cases" phase="2">Test case specifications</artifact>
+    <artifact name="test-data" phase="2">Test data sets</artifact>
+    <artifact name="defect-log" phase="5">Defect tracking log</artifact>
+    <artifact name="test-report" phase="7">Final test report</artifact>
+  </artifacts>
+</workflow>

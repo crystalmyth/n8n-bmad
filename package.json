@@ -1,0 +1,66 @@
+{
+  "name": "n8n-bmad",
+  "version": "1.0.0",
+  "description": "BMAD Framework for n8n workflow automation teams - AI-powered development methodology",
+  "main": "tools/cli/n8n-bmad-cli.js",
+  "bin": {
+    "n8n-bmad": "./tools/cli/n8n-bmad-cli.js"
+  },
+  "scripts": {
+    "start": "node tools/cli/n8n-bmad-cli.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint tools/cli/**/*.js",
+    "validate": "node tools/cli/n8n-bmad-cli.js validate",
+    "postinstall": "node -e \"console.log('\\n\\x1b[36mn8n-bmad installed successfully!\\x1b[0m\\nRun \\x1b[33mn8n-bmad init\\x1b[0m to get started.\\n')\""
+  },
+  "keywords": [
+    "n8n",
+    "workflow",
+    "automation",
+    "bmad",
+    "ai-agents",
+    "devops",
+    "orchestration",
+    "mcp"
+  ],
+  "author": "crystalmyth",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/crystalmyth/n8n-bmad.git"
+  },
+  "bugs": {
+    "url": "https://github.com/crystalmyth/n8n-bmad/issues"
+  },
+  "homepage": "https://github.com/crystalmyth/n8n-bmad#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "chalk": "^4.1.2",
+    "commander": "^11.1.0",
+    "figlet": "^1.7.0",
+    "inquirer": "^8.2.6",
+    "js-yaml": "^4.1.0",
+    "ora": "^5.4.1",
+    "table": "^6.8.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coverageDirectory": "coverage",
+    "collectCoverageFrom": [
+      "tools/cli/**/*.js",
+      "!tools/cli/n8n-bmad-cli.js"
+    ],
+    "testMatch": [
+      "**/test/**/*.test.js"
+    ]
+  }
+}

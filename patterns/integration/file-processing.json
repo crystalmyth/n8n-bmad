@@ -1,0 +1,306 @@
+{
+  "name": "Pattern: File Processing",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "upload",
+        "options": {
+          "responseMode": "responseNode"
+        }
+      },
+      "name": "File Upload Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [220, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.binary !== undefined }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Has File?",
+      "type": "n8n-nodes-base.if",
+      "position": [420, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": \"No file provided\", \"status\": 400 } }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "name": "No File Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [620, 200],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "const binary = $input.first().binary;\nconst file = Object.values(binary)[0];\n\nconst allowedTypes = ['text/csv', 'application/json', 'application/xml'];\nconst maxSize = 10 * 1024 * 1024; // 10MB\n\nif (!allowedTypes.includes(file.mimeType)) {\n  throw new Error(`Invalid file type: ${file.mimeType}. Allowed: ${allowedTypes.join(', ')}`);\n}\n\nif (file.fileSize > maxSize) {\n  throw new Error(`File too large: ${file.fileSize} bytes. Max: ${maxSize} bytes`);\n}\n\nreturn [{\n  json: {\n    fileName: file.fileName,\n    mimeType: file.mimeType,\n    fileSize: file.fileSize\n  },\n  binary\n}];"
+      },
+      "name": "Validate File",
+      "type": "n8n-nodes-base.code",
+      "position": [620, 400],
+      "typeVersion": 2,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.error === undefined }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Valid File?",
+      "type": "n8n-nodes-base.if",
+      "position": [820, 400],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": $json.error?.message, \"status\": 400 } }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "name": "Invalid File Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [1020, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.mimeType }}",
+              "value2": "text/csv"
+            }
+          ]
+        }
+      },
+      "name": "Route by Type",
+      "type": "n8n-nodes-base.switch",
+      "position": [1020, 500],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "Parse CSV",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "position": [1220, 400],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {},
+      "name": "Parse JSON",
+      "type": "n8n-nodes-base.extractFromFile",
+      "position": [1220, 500],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "name": "Parse XML",
+      "type": "n8n-nodes-base.xml",
+      "position": [1220, 600],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// Process each record\nconst processed = items.map((item, index) => {\n  const record = item.json;\n  \n  return {\n    json: {\n      row_number: index + 1,\n      ...record,\n      processed_at: new Date().toISOString()\n    }\n  };\n});\n\nreturn processed;"
+      },
+      "name": "Process Records",
+      "type": "n8n-nodes-base.code",
+      "position": [1420, 500],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "imported_data"
+      },
+      "name": "Save to Database",
+      "type": "n8n-nodes-base.postgres",
+      "position": [1620, 500],
+      "typeVersion": 2,
+      "notes": "Replace with your storage"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"records_processed\": $json.length, \"file\": $json.fileName } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [1820, 500],
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "File Upload Webhook": {
+      "main": [
+        [
+          {
+            "node": "Has File?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has File?": {
+      "main": [
+        [
+          {
+            "node": "Validate File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No File Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate File": {
+      "main": [
+        [
+          {
+            "node": "Valid File?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid File?": {
+      "main": [
+        [
+          {
+            "node": "Route by Type",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid File Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Type": {
+      "main": [
+        [
+          {
+            "node": "Parse CSV",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parse JSON",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parse XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse CSV": {
+      "main": [
+        [
+          {
+            "node": "Process Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse JSON": {
+      "main": [
+        [
+          {
+            "node": "Process Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse XML": {
+      "main": [
+        [
+          {
+            "node": "Process Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Records": {
+      "main": [
+        [
+          {
+            "node": "Save to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Database": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  },
+  "meta": {
+    "description": "File processing pattern with validation, type detection, parsing, and storage.",
+    "category": "integration",
+    "usage": "Supports CSV, JSON, XML files. Customize allowed types, size limits, and processing logic."
+  }
+}

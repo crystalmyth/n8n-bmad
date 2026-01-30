@@ -1,0 +1,302 @@
+{
+  "name": "Pattern: Database Sync",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [220, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM source_table WHERE updated_at > '{{ $json.last_sync_time }}'"
+      },
+      "name": "Fetch Source Records",
+      "type": "n8n-nodes-base.postgres",
+      "position": [420, 300],
+      "typeVersion": 2,
+      "notes": "Replace with your source database"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.length }}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "name": "Has Records?",
+      "type": "n8n-nodes-base.if",
+      "position": [620, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "name": "No Records to Sync",
+      "type": "n8n-nodes-base.noOp",
+      "position": [820, 200],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "batchSize": 100,
+        "options": {}
+      },
+      "name": "Split Into Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [820, 400],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn items.map(item => {\n  const record = item.json;\n  return {\n    json: {\n      ...record,\n      // Transform fields as needed\n      sync_timestamp: new Date().toISOString(),\n      source: 'source_system'\n    }\n  };\n});"
+      },
+      "name": "Transform Records",
+      "type": "n8n-nodes-base.code",
+      "position": [1020, 400],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "table": "destination_table",
+        "columns": "id, name, email, sync_timestamp, source",
+        "conflictColumns": "id"
+      },
+      "name": "Upsert to Destination",
+      "type": "n8n-nodes-base.postgres",
+      "position": [1220, 400],
+      "typeVersion": 2,
+      "continueOnFail": true,
+      "notes": "Replace with your destination database"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.error === undefined }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Sync Success?",
+      "type": "n8n-nodes-base.if",
+      "position": [1420, 400],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "values": {
+          "number": [
+            {
+              "name": "synced_count",
+              "value": "={{ $json.length }}"
+            }
+          ]
+        }
+      },
+      "name": "Record Success",
+      "type": "n8n-nodes-base.set",
+      "position": [1620, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "error",
+              "value": "={{ $json.error?.message }}"
+            }
+          ]
+        }
+      },
+      "name": "Record Failure",
+      "type": "n8n-nodes-base.set",
+      "position": [1620, 500],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData"
+      },
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.aggregate",
+      "position": [1820, 400],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE sync_metadata SET last_sync_time = NOW(), records_synced = {{ $json.synced_count }} WHERE sync_name = 'source_to_dest'"
+      },
+      "name": "Update Sync Metadata",
+      "type": "n8n-nodes-base.postgres",
+      "position": [2020, 400],
+      "typeVersion": 2
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Source Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Source Records": {
+      "main": [
+        [
+          {
+            "node": "Has Records?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Records?": {
+      "main": [
+        [
+          {
+            "node": "Split Into Batches",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Records to Sync",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Into Batches": {
+      "main": [
+        [
+          {
+            "node": "Transform Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform Records": {
+      "main": [
+        [
+          {
+            "node": "Upsert to Destination",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert to Destination": {
+      "main": [
+        [
+          {
+            "node": "Sync Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync Success?": {
+      "main": [
+        [
+          {
+            "node": "Record Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Record Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Success": {
+      "main": [
+        [
+          {
+            "node": "Split Into Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Failure": {
+      "main": [
+        [
+          {
+            "node": "Split Into Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Into Batches": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Results": {
+      "main": [
+        [
+          {
+            "node": "Update Sync Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  },
+  "meta": {
+    "description": "Database synchronization pattern with incremental sync, batching, and metadata tracking.",
+    "category": "integration",
+    "usage": "Replace database nodes with your source and destination. Adjust batch size and sync frequency."
+  }
+}

@@ -1,0 +1,188 @@
+{
+  "name": "Pattern: Interval Trigger with Jitter",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        }
+      },
+      "name": "5 Minute Interval",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [220, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "amount": "={{ Math.floor(Math.random() * 30) }}",
+        "unit": "seconds"
+      },
+      "name": "Random Jitter (0-30s)",
+      "type": "n8n-nodes-base.wait",
+      "position": [420, 300],
+      "typeVersion": 1,
+      "notes": "Add random delay to prevent thundering herd"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "execution_start",
+              "value": "={{ $now.toISO() }}"
+            }
+          ]
+        }
+      },
+      "name": "Record Start Time",
+      "type": "n8n-nodes-base.set",
+      "position": [620, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.com/check",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "name": "Perform Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [820, 300],
+      "typeVersion": 4
+    },
+    {
+      "parameters": {
+        "jsCode": "const startTime = new Date($json.execution_start);\nconst endTime = new Date();\nconst duration = endTime - startTime;\n\nreturn [{\n  json: {\n    ...$json,\n    execution_end: endTime.toISOString(),\n    duration_ms: duration,\n    status: 'completed'\n  }\n}];"
+      },
+      "name": "Calculate Duration",
+      "type": "n8n-nodes-base.code",
+      "position": [1020, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.duration_ms }}",
+              "operation": "larger",
+              "value2": 240000
+            }
+          ]
+        }
+      },
+      "name": "Took Too Long?",
+      "type": "n8n-nodes-base.if",
+      "position": [1220, 300],
+      "typeVersion": 1,
+      "notes": "Alert if approaching interval (4 mins of 5)"
+    },
+    {
+      "parameters": {},
+      "name": "Normal Completion",
+      "type": "n8n-nodes-base.noOp",
+      "position": [1420, 200],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "channel": "#alerts",
+        "text": "=:warning: Scheduled task taking too long!\n\nExecution duration: {{ Math.round($json.duration_ms / 1000) }}s\nInterval: 5 minutes\n\nConsider increasing interval or optimizing task."
+      },
+      "name": "Send Duration Alert",
+      "type": "n8n-nodes-base.slack",
+      "position": [1420, 400],
+      "typeVersion": 2,
+      "notes": "Alert if execution approaches interval length"
+    }
+  ],
+  "connections": {
+    "5 Minute Interval": {
+      "main": [
+        [
+          {
+            "node": "Random Jitter (0-30s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Random Jitter (0-30s)": {
+      "main": [
+        [
+          {
+            "node": "Record Start Time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Start Time": {
+      "main": [
+        [
+          {
+            "node": "Perform Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Perform Task": {
+      "main": [
+        [
+          {
+            "node": "Calculate Duration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Duration": {
+      "main": [
+        [
+          {
+            "node": "Took Too Long?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Took Too Long?": {
+      "main": [
+        [
+          {
+            "node": "Normal Completion",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Duration Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  },
+  "meta": {
+    "description": "Interval trigger pattern with jitter to prevent thundering herd and duration monitoring.",
+    "category": "scheduling",
+    "usage": "Adjust interval, jitter range, and alert threshold for your use case."
+  }
+}

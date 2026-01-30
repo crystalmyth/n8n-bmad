@@ -1,0 +1,223 @@
+{
+  "name": "Pattern: Polling to Webhook Conversion",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "name": "Poll Every Minute",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [220, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT last_poll_id FROM poll_state WHERE source = 'example_api'"
+      },
+      "name": "Get Last Poll State",
+      "type": "n8n-nodes-base.postgres",
+      "position": [420, 300],
+      "typeVersion": 2,
+      "notes": "Replace with your state storage"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.example.com/events?since_id={{ $json.last_poll_id || 0 }}",
+        "options": {}
+      },
+      "name": "Fetch New Events",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [620, 300],
+      "typeVersion": 4
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.events?.length || 0 }}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "name": "New Events?",
+      "type": "n8n-nodes-base.if",
+      "position": [820, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "name": "No New Events",
+      "type": "n8n-nodes-base.noOp",
+      "position": [1020, 200],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "events",
+        "options": {}
+      },
+      "name": "Split Events",
+      "type": "n8n-nodes-base.splitOut",
+      "position": [1020, 400],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "const event = $input.first().json;\n\n// Format as webhook-style event\nreturn [{\n  json: {\n    event_type: event.type,\n    event_id: event.id,\n    timestamp: event.created_at,\n    data: event.payload,\n    source: 'polling_converter',\n    original_event: event\n  }\n}];"
+      },
+      "name": "Format as Webhook Event",
+      "type": "n8n-nodes-base.code",
+      "position": [1220, 400],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.INTERNAL_WEBHOOK_URL }}/events",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}"
+      },
+      "name": "Send to Internal Webhook",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1420, 400],
+      "typeVersion": 4,
+      "notes": "Forward to your event-driven workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst lastId = Math.max(...items.map(i => i.json.event_id || 0));\n\nreturn [{ json: { last_poll_id: lastId } }];"
+      },
+      "name": "Get Latest ID",
+      "type": "n8n-nodes-base.code",
+      "position": [1620, 400],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=UPDATE poll_state SET last_poll_id = {{ $json.last_poll_id }}, updated_at = NOW() WHERE source = 'example_api'"
+      },
+      "name": "Update Poll State",
+      "type": "n8n-nodes-base.postgres",
+      "position": [1820, 400],
+      "typeVersion": 2
+    }
+  ],
+  "connections": {
+    "Poll Every Minute": {
+      "main": [
+        [
+          {
+            "node": "Get Last Poll State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Last Poll State": {
+      "main": [
+        [
+          {
+            "node": "Fetch New Events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch New Events": {
+      "main": [
+        [
+          {
+            "node": "New Events?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New Events?": {
+      "main": [
+        [
+          {
+            "node": "Split Events",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No New Events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Events": {
+      "main": [
+        [
+          {
+            "node": "Format as Webhook Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format as Webhook Event": {
+      "main": [
+        [
+          {
+            "node": "Send to Internal Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Internal Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Latest ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Latest ID": {
+      "main": [
+        [
+          {
+            "node": "Update Poll State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  },
+  "meta": {
+    "description": "Convert polling-based integration to webhook-style events for downstream processing.",
+    "category": "scheduling",
+    "usage": "Use when an API doesn't support webhooks. Adjust polling interval based on data freshness needs."
+  }
+}

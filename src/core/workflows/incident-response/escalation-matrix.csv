@@ -1,0 +1,5 @@
+severity,description,response_time,escalation_path,communication_frequency
+SEV1,Complete outage - all workflows down,Immediate (5 min),On-call -> Engineering Lead -> VP Engineering,Every 15 minutes
+SEV2,Major feature impacted - critical workflows failing,30 minutes,On-call -> Engineering Lead,Every 30 minutes
+SEV3,Minor impact - non-critical workflows affected,4 hours,On-call -> Team Lead,Every 2 hours
+SEV4,Low impact - cosmetic or minor issues,Next business day,Support Queue,Daily update

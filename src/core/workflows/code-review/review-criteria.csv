@@ -1,0 +1,27 @@
+category,item,description,severity,pass_criteria
+structure,naming,Node names follow conventions,high,All nodes use descriptive snake_case names with proper prefix
+structure,organization,Workflow is logically organized,medium,Clear flow from trigger to output
+structure,complexity,Workflow is not overly complex,medium,Single responsibility sub-workflows for complex logic
+structure,notes,Complex nodes have explanatory notes,low,Notes on non-obvious logic
+error_handling,error_workflow,Error workflow configured,high,Production workflows have error workflow assigned
+error_handling,try_catch,Critical operations have error handling,high,External API calls have error branches
+error_handling,error_messages,Error messages are meaningful,medium,Errors provide actionable information
+error_handling,retry_logic,Transient failures have retry logic,medium,API calls use retry with backoff
+security,credentials,No hardcoded credentials,critical,All secrets in credential store
+security,sensitive_data,Sensitive data not logged,critical,PII and secrets not in execution data
+security,input_validation,Webhook inputs validated,high,Schema validation on external inputs
+security,injection,No injection vulnerabilities,critical,Expressions safely handle user input
+data,transformations,Data transformations are correct,high,Output matches specification
+data,null_handling,Null values handled properly,medium,No undefined errors from missing data
+data,type_safety,Data types are consistent,medium,Numbers strings dates handled correctly
+data,large_data,Large datasets handled efficiently,medium,Pagination batching used appropriately
+performance,execution_time,Execution time is acceptable,medium,Within defined SLA
+performance,api_calls,API calls are optimized,medium,No unnecessary calls batching used
+performance,memory,Memory usage is reasonable,low,No memory leaks in loops
+documentation,workflow_doc,Workflow purpose documented,medium,Clear description of what workflow does
+documentation,data_flow,Data flow documented,medium,Input output transformations documented
+documentation,runbook,Operational runbook exists,high,Support can troubleshoot issues
+testing,happy_path,Happy path tested,high,Main scenarios pass
+testing,error_paths,Error paths tested,high,Errors handled correctly
+testing,edge_cases,Edge cases tested,medium,Boundary conditions covered
+testing,test_data,Realistic test data used,medium,Tests reflect production scenarios

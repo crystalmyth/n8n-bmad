@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<task id="TASK-005" name="performance-audit" version="1.0.0">
+  <metadata>
+    <description>Audit workflow for performance issues and optimization opportunities</description>
+    <category>optimization</category>
+    <agents>architect,developer</agents>
+  </metadata>
+
+  <input>
+    <parameter name="workflow_json" type="file" required="true">
+      <description>The n8n workflow JSON to audit</description>
+    </parameter>
+    <parameter name="execution_data" type="file" required="false">
+      <description>Sample execution data for analysis</description>
+    </parameter>
+    <parameter name="sla_requirements" type="object" required="false">
+      <description>Performance SLA requirements</description>
+      <example>{"max_execution_time": 30, "max_memory_mb": 256}</example>
+    </parameter>
+  </input>
+
+  <output>
+    <artifact name="audit_report" type="markdown">
+      <description>Performance audit report with recommendations</description>
+    </artifact>
+  </output>
+
+  <steps>
+    <step id="1" name="analyze-structure">
+      <action>Analyze workflow structure for performance</action>
+      <checks>
+        <check id="PERF-001">
+          <name>Node Count</name>
+          <description>Check total number of nodes</description>
+          <thresholds>
+            <threshold level="info" value="10">Consider sub-workflows</threshold>
+            <threshold level="warning" value="20">Should use sub-workflows</threshold>
+            <threshold level="critical" value="50">Must refactor into sub-workflows</threshold>
+          </thresholds>
+        </check>
+        <check id="PERF-002">
+          <name>Sequential Processing</name>
+          <description>Identify unnecessary sequential execution</description>
+          <optimization>Use parallel execution where possible</optimization>
+        </check>
+      </checks>
+    </step>
+
+    <step id="2" name="analyze-api-calls">
+      <action>Analyze external API calls</action>
+      <checks>
+        <check id="PERF-003">
+          <name>API Call Count</name>
+          <description>Count external API calls per execution</description>
+          <optimization>Batch requests where possible</optimization>
+        </check>
+        <check id="PERF-004">
+          <name>Redundant Calls</name>
+          <description>Identify duplicate API calls</description>
+          <optimization>Cache responses or restructure flow</optimization>
+        </check>
+        <check id="PERF-005">
+          <name>N+1 Pattern</name>
+          <description>Detect N+1 query patterns</description>
+          <pattern>Loop making individual API calls</pattern>
+          <optimization>Use batch API endpoints</optimization>
+        </check>
+      </checks>
+    </step>
+
+    <step id="3" name="analyze-data-handling">
+      <action>Analyze data handling patterns</action>
+      <checks>
+        <check id="PERF-006">
+          <name>Large Payload Handling</name>
+          <description>Check handling of large data sets</description>
+          <thresholds>
+            <threshold level="warning" items="1000">Use pagination</threshold>
+            <threshold level="critical" items="10000">Must implement batching</threshold>
+          </thresholds>
+        </check>
+        <check id="PERF-007">
+          <name>Unnecessary Data Transfer</name>
+          <description>Check for transferring unused fields</description>
+          <optimization>Select only needed fields in API calls</optimization>
+        </check>
+        <check id="PERF-008">
+          <name>Memory-Heavy Operations</name>
+          <description>Identify operations that load all data into memory</description>
+          <operations>full array sort, full array reverse, large reduce</operations>
+          <optimization>Use streaming or chunked processing</optimization>
+        </check>
+      </checks>
+    </step>
+
+    <step id="4" name="analyze-expressions">
+      <action>Analyze expression efficiency</action>
+      <checks>
+        <check id="PERF-009">
+          <name>Complex Expressions</name>
+          <description>Identify overly complex expressions</description>
+          <patterns>
+            <pattern>Nested map/filter/reduce chains</pattern>
+            <pattern>Repeated calculations</pattern>
+          </patterns>
+          <optimization>Break into Code node for efficiency</optimization>
+        </check>
+        <check id="PERF-010">
+          <name>Regex Performance</name>
+          <description>Check regex patterns for performance</description>
+          <anti_patterns>
+            <pattern>Catastrophic backtracking patterns</pattern>
+            <pattern>Unnecessary global flags in loops</pattern>
+          </anti_patterns>
+        </check>
+      </checks>
+    </step>
+
+    <step id="5" name="analyze-execution-data" condition="execution_data provided">
+      <action>Analyze actual execution performance</action>
+      <metrics>
+        <metric>Total execution time</metric>
+        <metric>Time per node</metric>
+        <metric>Wait times (rate limiting, delays)</metric>
+        <metric>Data size at each step</metric>
+      </metrics>
+      <identify>
+        <item>Bottleneck nodes</item>
+        <item>Slowest operations</item>
+        <item>Memory peaks</item>
+      </identify>
+    </step>
+
+    <step id="6" name="check-sla-compliance" condition="sla_requirements provided">
+      <action>Check against SLA requirements</action>
+      <validations>
+        <validation>Execution time vs max_execution_time</validation>
+        <validation>Memory usage vs max_memory_mb</validation>
+        <validation>Error rate vs max_error_rate</validation>
+      </validations>
+    </step>
+
+    <step id="7" name="generate-recommendations">
+      <action>Generate optimization recommendations</action>
+      <categories>
+        <category name="quick-wins">
+          <description>Easy improvements with high impact</description>
+        </category>
+        <category name="refactoring">
+          <description>Structural changes for better performance</description>
+        </category>
+        <category name="architecture">
+          <description>Design changes for scalability</description>
+        </category>
+      </categories>
+    </step>
+
+    <step id="8" name="generate-report">
+      <action>Generate performance audit report</action>
+      <template>
+        ## Performance Audit Report
+
+        **Workflow:** {workflow_name}
+        **Audit Date:** {date}
+
+        ### Summary
+        - Performance Score: {score}/100
+        - Critical Issues: {critical_count}
+        - Optimization Opportunities: {opportunity_count}
+
+        ### SLA Compliance
+        {sla_status}
+
+        ### Performance Metrics
+        | Metric | Current | Target | Status |
+        |--------|---------|--------|--------|
+        {metrics_table}
+
+        ### Findings
+
+        #### Critical Issues
+        {critical_findings}
+
+        #### Warnings
+        {warning_findings}
+
+        #### Informational
+        {info_findings}
+
+        ### Recommendations
+
+        #### Quick Wins
+        {quick_wins}
+
+        #### Refactoring Opportunities
+        {refactoring}
+
+        #### Architecture Improvements
+        {architecture}
+
+        ### Implementation Priority
+        {priority_list}
+      </template>
+    </step>
+  </steps>
+</task>

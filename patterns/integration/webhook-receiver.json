@@ -1,0 +1,266 @@
+{
+  "name": "Pattern: Webhook Receiver",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "webhook-receiver",
+        "options": {
+          "responseMode": "responseNode"
+        }
+      },
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "position": [220, 300],
+      "typeVersion": 1,
+      "webhookId": "webhook-receiver-pattern"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.headers['x-webhook-secret'] }}",
+              "value2": "={{ $env.WEBHOOK_SECRET }}"
+            }
+          ]
+        }
+      },
+      "name": "Validate Secret",
+      "type": "n8n-nodes-base.if",
+      "position": [420, 300],
+      "typeVersion": 1,
+      "notes": "Validate webhook authenticity"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": \"Unauthorized\", \"status\": 401 } }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "name": "Unauthorized Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [620, 200],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $input.first().json.body;\n\n// Validate required fields\nconst required = ['event', 'data'];\nconst missing = required.filter(f => !payload[f]);\n\nif (missing.length > 0) {\n  throw new Error(`Missing required fields: ${missing.join(', ')}`);\n}\n\n// Validate event type\nconst validEvents = ['created', 'updated', 'deleted'];\nif (!validEvents.includes(payload.event)) {\n  throw new Error(`Invalid event type: ${payload.event}`);\n}\n\nreturn [{ json: payload }];"
+      },
+      "name": "Validate Payload",
+      "type": "n8n-nodes-base.code",
+      "position": [620, 400],
+      "typeVersion": 2,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.error === undefined }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Validation Passed?",
+      "type": "n8n-nodes-base.if",
+      "position": [820, 400],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": \"Bad Request\", \"message\": $json.error?.message || \"Invalid payload\", \"status\": 400 } }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "name": "Bad Request Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [1020, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.event }}",
+              "operation": "equals",
+              "value2": "created"
+            }
+          ]
+        }
+      },
+      "name": "Route by Event",
+      "type": "n8n-nodes-base.switch",
+      "position": [1020, 500],
+      "typeVersion": 2,
+      "notes": "Route to different handlers based on event type"
+    },
+    {
+      "parameters": {},
+      "name": "Handle Created",
+      "type": "n8n-nodes-base.noOp",
+      "position": [1220, 400],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "name": "Handle Updated",
+      "type": "n8n-nodes-base.noOp",
+      "position": [1220, 500],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "name": "Handle Deleted",
+      "type": "n8n-nodes-base.noOp",
+      "position": [1220, 600],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message\": \"Webhook received\", \"event\": $json.event } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [1420, 500],
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Validate Secret",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Secret": {
+      "main": [
+        [
+          {
+            "node": "Unauthorized Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Validate Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Payload": {
+      "main": [
+        [
+          {
+            "node": "Validation Passed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation Passed?": {
+      "main": [
+        [
+          {
+            "node": "Route by Event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Bad Request Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Event": {
+      "main": [
+        [
+          {
+            "node": "Handle Created",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Updated",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Deleted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Created": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Updated": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Deleted": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  },
+  "meta": {
+    "description": "Webhook receiver pattern with authentication, validation, and event routing.",
+    "category": "integration",
+    "usage": "Configure authentication method, add your event handlers, customize validation rules."
+  }
+}

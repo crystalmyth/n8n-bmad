@@ -1,0 +1,258 @@
+{
+  "name": "Pattern: Dead Letter Queue",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [220, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "batchSize": 10,
+        "options": {}
+      },
+      "name": "Split Into Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [420, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.com/process",
+        "options": {}
+      },
+      "name": "Process Item",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [620, 300],
+      "typeVersion": 4,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.error === undefined }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Success?",
+      "type": "n8n-nodes-base.if",
+      "position": [820, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "name": "Continue Processing",
+      "type": "n8n-nodes-base.noOp",
+      "position": [1020, 200],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "dlq_timestamp",
+              "value": "={{ $now.toISO() }}"
+            },
+            {
+              "name": "dlq_error",
+              "value": "={{ $json.error?.message || 'Unknown error' }}"
+            },
+            {
+              "name": "dlq_execution_id",
+              "value": "={{ $execution.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Add DLQ Metadata",
+      "type": "n8n-nodes-base.set",
+      "position": [1020, 400],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_SPREADSHEET_ID"
+        },
+        "sheetName": "DLQ",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $json.dlq_timestamp }}",
+            "execution_id": "={{ $json.dlq_execution_id }}",
+            "error": "={{ $json.dlq_error }}",
+            "original_data": "={{ JSON.stringify($json) }}"
+          }
+        }
+      },
+      "name": "Store in DLQ (Google Sheets)",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [1220, 400],
+      "typeVersion": 4,
+      "notes": "Replace with your preferred storage: database, file, queue, etc."
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData"
+      },
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.aggregate",
+      "position": [1420, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "values": {
+          "number": [
+            {
+              "name": "total_processed",
+              "value": "={{ $json.data.length }}"
+            },
+            {
+              "name": "failed_count",
+              "value": "={{ $json.data.filter(i => i.dlq_error).length }}"
+            },
+            {
+              "name": "success_count",
+              "value": "={{ $json.data.filter(i => !i.dlq_error).length }}"
+            }
+          ]
+        }
+      },
+      "name": "Calculate Summary",
+      "type": "n8n-nodes-base.set",
+      "position": [1620, 300],
+      "typeVersion": 2
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Split Into Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Into Batches": {
+      "main": [
+        [
+          {
+            "node": "Process Item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Item": {
+      "main": [
+        [
+          {
+            "node": "Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success?": {
+      "main": [
+        [
+          {
+            "node": "Continue Processing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add DLQ Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Continue Processing": {
+      "main": [
+        [
+          {
+            "node": "Split Into Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add DLQ Metadata": {
+      "main": [
+        [
+          {
+            "node": "Store in DLQ (Google Sheets)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store in DLQ (Google Sheets)": {
+      "main": [
+        [
+          {
+            "node": "Split Into Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Into Batches": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Results": {
+      "main": [
+        [
+          {
+            "node": "Calculate Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all"
+  },
+  "meta": {
+    "description": "Dead Letter Queue pattern for batch processing. Failed items are stored for later review/retry.",
+    "category": "error-handling",
+    "usage": "Replace DLQ storage with your preferred mechanism (database, queue, etc.). Connect a reprocessing workflow."
+  }
+}

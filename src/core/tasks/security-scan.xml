@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<task id="TASK-003" name="security-scan" version="1.0.0">
+  <metadata>
+    <description>Scan workflow for security vulnerabilities and compliance issues</description>
+    <category>security</category>
+    <agents>security,devops</agents>
+  </metadata>
+
+  <input>
+    <parameter name="workflow_json" type="file" required="true">
+      <description>The n8n workflow JSON to scan</description>
+    </parameter>
+    <parameter name="compliance_framework" type="enum" required="false">
+      <options>general,soc2,gdpr,hipaa</options>
+      <description>Compliance framework to check against</description>
+    </parameter>
+  </input>
+
+  <output>
+    <artifact name="security_report" type="markdown">
+      <description>Security scan report with findings and recommendations</description>
+    </artifact>
+  </output>
+
+  <steps>
+    <step id="1" name="scan-credentials">
+      <action>Scan for credential security issues</action>
+      <checks>
+        <check id="SEC-001" severity="critical">
+          <name>Hardcoded Secrets</name>
+          <description>Check for hardcoded passwords, API keys, or tokens</description>
+          <patterns>
+            <pattern>password\s*[:=]\s*["'][^"']+["']</pattern>
+            <pattern>api[_-]?key\s*[:=]\s*["'][^"']+["']</pattern>
+            <pattern>token\s*[:=]\s*["'][^"']+["']</pattern>
+            <pattern>secret\s*[:=]\s*["'][^"']+["']</pattern>
+          </patterns>
+          <remediation>Move secrets to n8n credential store</remediation>
+        </check>
+        <check id="SEC-002" severity="high">
+          <name>Credential Store Usage</name>
+          <description>Verify credentials are referenced from store</description>
+          <validation>All credential nodes use credentialId references</validation>
+          <remediation>Configure credentials through n8n UI</remediation>
+        </check>
+      </checks>
+    </step>
+
+    <step id="2" name="scan-data-exposure">
+      <action>Scan for sensitive data exposure</action>
+      <checks>
+        <check id="SEC-003" severity="critical">
+          <name>PII Logging</name>
+          <description>Check if PII might be logged in execution data</description>
+          <pii_patterns>
+            <pattern type="email">email|e-mail|mail</pattern>
+            <pattern type="phone">phone|mobile|cell</pattern>
+            <pattern type="ssn">ssn|social.*security</pattern>
+            <pattern type="credit_card">card.*number|credit.*card|cc.*num</pattern>
+          </pii_patterns>
+          <remediation>Mask sensitive data before logging</remediation>
+        </check>
+        <check id="SEC-004" severity="high">
+          <name>Data Retention</name>
+          <description>Check execution data retention settings</description>
+          <validation>Verify appropriate retention policies</validation>
+          <remediation>Configure data retention per compliance requirements</remediation>
+        </check>
+      </checks>
+    </step>
+
+    <step id="3" name="scan-input-validation">
+      <action>Scan for input validation issues</action>
+      <checks>
+        <check id="SEC-005" severity="high">
+          <name>Webhook Input Validation</name>
+          <description>Check if webhook inputs are validated</description>
+          <validation>Webhook triggers should validate payload schema</validation>
+          <remediation>Add input validation node after webhook trigger</remediation>
+        </check>
+        <check id="SEC-006" severity="high">
+          <name>Injection Prevention</name>
+          <description>Check for potential injection vulnerabilities</description>
+          <vectors>
+            <vector type="sql">SQL query construction with user input</vector>
+            <vector type="command">Shell command construction with user input</vector>
+            <vector type="code">Dynamic code execution with user input</vector>
+          </vectors>
+          <remediation>Sanitize inputs, use parameterized queries</remediation>
+        </check>
+      </checks>
+    </step>
+
+    <step id="4" name="scan-authentication">
+      <action>Scan authentication configuration</action>
+      <checks>
+        <check id="SEC-007" severity="high">
+          <name>Webhook Authentication</name>
+          <description>Check if webhooks have authentication</description>
+          <validation>Public webhooks should have authentication configured</validation>
+          <remediation>Enable webhook authentication (header, basic, etc.)</remediation>
+        </check>
+        <check id="SEC-008" severity="medium">
+          <name>API Authentication</name>
+          <description>Check API call authentication methods</description>
+          <validation>Prefer OAuth2 over API keys where available</validation>
+          <remediation>Use strongest available authentication method</remediation>
+        </check>
+      </checks>
+    </step>
+
+    <step id="5" name="scan-network">
+      <action>Scan network security aspects</action>
+      <checks>
+        <check id="SEC-009" severity="high">
+          <name>HTTPS Usage</name>
+          <description>Check all external URLs use HTTPS</description>
+          <validation>No HTTP URLs for external services</validation>
+          <remediation>Update URLs to use HTTPS</remediation>
+        </check>
+        <check id="SEC-010" severity="medium">
+          <name>Internal Network Access</name>
+          <description>Check for internal network access patterns</description>
+          <validation>Verify internal URLs are intentional</validation>
+          <remediation>Document and approve internal access</remediation>
+        </check>
+      </checks>
+    </step>
+
+    <step id="6" name="compliance-check">
+      <action>Check compliance requirements</action>
+      <condition>If compliance_framework specified</condition>
+      <frameworks>
+        <framework name="soc2">
+          <controls>
+            <control>CC6.1 - Logical access controls</control>
+            <control>CC6.6 - Encryption</control>
+            <control>CC7.2 - System monitoring</control>
+          </controls>
+        </framework>
+        <framework name="gdpr">
+          <requirements>
+            <requirement>Art 5 - Data minimization</requirement>
+            <requirement>Art 25 - Privacy by design</requirement>
+            <requirement>Art 32 - Security of processing</requirement>
+          </requirements>
+        </framework>
+        <framework name="hipaa">
+          <safeguards>
+            <safeguard>164.312(a) - Access control</safeguard>
+            <safeguard>164.312(c) - Integrity</safeguard>
+            <safeguard>164.312(e) - Transmission security</safeguard>
+          </safeguards>
+        </framework>
+      </frameworks>
+    </step>
+
+    <step id="7" name="generate-report">
+      <action>Generate security scan report</action>
+      <template>
+        ## Security Scan Report
+
+        **Workflow:** {workflow_name}
+        **Scan Date:** {date}
+        **Compliance Framework:** {framework}
+
+        ### Executive Summary
+        - Risk Level: {risk_level}
+        - Critical Issues: {critical_count}
+        - High Issues: {high_count}
+        - Medium Issues: {medium_count}
+
+        ### Findings
+
+        {findings_detail}
+
+        ### Compliance Status
+
+        {compliance_status}
+
+        ### Recommendations
+
+        {recommendations}
+
+        ### Remediation Priority
+
+        {remediation_list}
+      </template>
+    </step>
+  </steps>
+</task>

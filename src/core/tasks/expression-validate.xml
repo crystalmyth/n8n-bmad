@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<task id="TASK-002" name="expression-validate" version="1.0.0">
+  <metadata>
+    <description>Validate n8n expressions for syntax and potential runtime errors</description>
+    <category>validation</category>
+    <agents>developer</agents>
+  </metadata>
+
+  <input>
+    <parameter name="expression" type="string" required="true">
+      <description>The n8n expression to validate</description>
+      <example>{{ $json.items.map(i => i.name).join(', ') }}</example>
+    </parameter>
+    <parameter name="context" type="object" required="false">
+      <description>Sample data context for validation</description>
+    </parameter>
+  </input>
+
+  <output>
+    <artifact name="validation_result" type="object">
+      <fields>
+        <field name="valid" type="boolean"/>
+        <field name="errors" type="array"/>
+        <field name="warnings" type="array"/>
+        <field name="suggestions" type="array"/>
+      </fields>
+    </artifact>
+  </output>
+
+  <steps>
+    <step id="1" name="parse-expression">
+      <action>Parse expression syntax</action>
+      <validations>
+        <validation type="syntax">
+          <check>Expression uses correct delimiters ({{ }})</check>
+          <check>Brackets are balanced</check>
+          <check>String quotes are matched</check>
+        </validation>
+      </validations>
+    </step>
+
+    <step id="2" name="check-references">
+      <action>Validate variable references</action>
+      <validations>
+        <validation type="variables">
+          <check>$json references exist</check>
+          <check>$node references are valid</check>
+          <check>Built-in variables used correctly</check>
+        </validation>
+      </validations>
+      <known_variables>
+        <variable name="$json">Current item data</variable>
+        <variable name="$input">Input to current node</variable>
+        <variable name="$node">Node reference object</variable>
+        <variable name="$workflow">Workflow metadata</variable>
+        <variable name="$execution">Execution metadata</variable>
+        <variable name="$now">Current DateTime</variable>
+        <variable name="$today">Today's date</variable>
+        <variable name="$jmespath">JMESPath function</variable>
+        <variable name="DateTime">Luxon DateTime</variable>
+      </known_variables>
+    </step>
+
+    <step id="3" name="check-methods">
+      <action>Validate method calls</action>
+      <validations>
+        <validation type="methods">
+          <check>Method names are valid</check>
+          <check>Method arguments are correct</check>
+          <check>Method chaining is proper</check>
+        </validation>
+      </validations>
+      <common_methods>
+        <method object="string">toLowerCase, toUpperCase, trim, split, replace, includes</method>
+        <method object="array">map, filter, find, reduce, join, length, slice</method>
+        <method object="object">keys, values, entries</method>
+        <method object="DateTime">toISO, toFormat, plus, minus, diff</method>
+      </common_methods>
+    </step>
+
+    <step id="4" name="check-common-issues">
+      <action>Check for common expression issues</action>
+      <issues>
+        <issue type="null-access">
+          <description>Accessing property of potentially null value</description>
+          <pattern>$json.field.subfield without null check</pattern>
+          <suggestion>Use optional chaining: $json.field?.subfield</suggestion>
+        </issue>
+        <issue type="array-assumption">
+          <description>Assuming value is array without check</description>
+          <pattern>.map() on potentially non-array</pattern>
+          <suggestion>Add Array.isArray() check or default</suggestion>
+        </issue>
+        <issue type="type-mismatch">
+          <description>Operations on wrong types</description>
+          <pattern>String operations on numbers</pattern>
+          <suggestion>Add explicit type conversion</suggestion>
+        </issue>
+      </issues>
+    </step>
+
+    <step id="5" name="test-with-context">
+      <action>Test expression with sample data if provided</action>
+      <condition>If context parameter provided</condition>
+      <validations>
+        <validation type="runtime">
+          <check>Expression evaluates without error</check>
+          <check>Result is expected type</check>
+        </validation>
+      </validations>
+    </step>
+
+    <step id="6" name="generate-suggestions">
+      <action>Generate improvement suggestions</action>
+      <suggestions>
+        <suggestion type="readability">
+          <check>Consider breaking complex expressions into steps</check>
+        </suggestion>
+        <suggestion type="safety">
+          <check>Add null checks for optional fields</check>
+          <check>Use default values for missing data</check>
+        </suggestion>
+        <suggestion type="performance">
+          <check>Avoid repeated calculations</check>
+          <check>Use efficient array methods</check>
+        </suggestion>
+      </suggestions>
+    </step>
+
+    <step id="7" name="return-result">
+      <action>Return validation result</action>
+      <output_format>
+        {
+          "valid": true/false,
+          "errors": ["error messages"],
+          "warnings": ["warning messages"],
+          "suggestions": ["improvement suggestions"]
+        }
+      </output_format>
+    </step>
+  </steps>
+</task>

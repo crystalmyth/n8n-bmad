@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="WF-004" name="incident-response" version="1.0.0">
+  <metadata>
+    <description>Respond to workflow incidents and outages systematically</description>
+    <category>operations</category>
+    <primary_agent>devops</primary_agent>
+    <supporting_agents>developer,security</supporting_agents>
+  </metadata>
+
+  <phases>
+    <phase id="1" name="detection">
+      <description>Detect and acknowledge incident</description>
+      <agent>devops</agent>
+      <steps>
+        <step order="1">
+          <action>Receive alert or report</action>
+        </step>
+        <step order="2">
+          <action>Acknowledge incident</action>
+          <sla>5 minutes for SEV1</sla>
+        </step>
+        <step order="3">
+          <action>Create incident ticket</action>
+        </step>
+        <step order="4">
+          <action>Assess initial severity</action>
+        </step>
+        <step order="5">
+          <action>Notify incident commander</action>
+          <condition>If SEV1 or SEV2</condition>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Incident acknowledged</criterion>
+        <criterion>Ticket created</criterion>
+        <criterion>Severity assessed</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="2" name="triage">
+      <description>Assess impact and prioritize response</description>
+      <agent>devops</agent>
+      <steps>
+        <step order="1">
+          <action>Identify affected workflows</action>
+        </step>
+        <step order="2">
+          <action>Assess business impact</action>
+        </step>
+        <step order="3">
+          <action>Determine scope of outage</action>
+        </step>
+        <step order="4">
+          <action>Confirm or adjust severity</action>
+        </step>
+        <step order="5">
+          <action>Assemble response team</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Impact assessed</criterion>
+        <criterion>Response team assembled</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="3" name="investigation">
+      <description>Investigate root cause</description>
+      <agent>developer</agent>
+      <steps>
+        <step order="1">
+          <action>Review execution logs</action>
+        </step>
+        <step order="2">
+          <action>Check error messages</action>
+        </step>
+        <step order="3">
+          <action>Review recent changes</action>
+        </step>
+        <step order="4">
+          <action>Check external dependencies</action>
+        </step>
+        <step order="5">
+          <action>Identify root cause</action>
+        </step>
+        <step order="6">
+          <action>Document findings</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Root cause identified</criterion>
+        <criterion>Findings documented</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="4" name="containment">
+      <description>Contain the incident impact</description>
+      <agent>devops</agent>
+      <steps>
+        <step order="1">
+          <action>Implement immediate mitigation</action>
+        </step>
+        <step order="2">
+          <action>Disable affected workflows if needed</action>
+        </step>
+        <step order="3">
+          <action>Redirect traffic if applicable</action>
+        </step>
+        <step order="4">
+          <action>Communicate status to stakeholders</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Impact contained</criterion>
+        <criterion>Stakeholders informed</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="5" name="resolution">
+      <description>Resolve the incident</description>
+      <agent>developer</agent>
+      <steps>
+        <step order="1">
+          <action>Develop fix or workaround</action>
+        </step>
+        <step order="2">
+          <action>Test fix in staging</action>
+        </step>
+        <step order="3">
+          <action>Deploy fix to production</action>
+        </step>
+        <step order="4">
+          <action>Verify fix resolves issue</action>
+        </step>
+        <step order="5">
+          <action>Re-enable affected workflows</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Fix deployed</criterion>
+        <criterion>Service restored</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="6" name="recovery">
+      <description>Recover from incident</description>
+      <agent>devops</agent>
+      <steps>
+        <step order="1">
+          <action>Process any backlogged data</action>
+        </step>
+        <step order="2">
+          <action>Verify all workflows operational</action>
+        </step>
+        <step order="3">
+          <action>Monitor for recurrence</action>
+        </step>
+        <step order="4">
+          <action>Declare incident resolved</action>
+        </step>
+        <step order="5">
+          <action>Notify stakeholders of resolution</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>All systems operational</criterion>
+        <criterion>Monitoring in place</criterion>
+        <criterion>Stakeholders notified</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="7" name="post-mortem">
+      <description>Learn from the incident</description>
+      <agent>devops</agent>
+      <steps>
+        <step order="1">
+          <action>Schedule post-mortem meeting</action>
+          <sla>Within 5 business days</sla>
+        </step>
+        <step order="2">
+          <action>Document timeline of events</action>
+        </step>
+        <step order="3">
+          <action>Identify contributing factors</action>
+        </step>
+        <step order="4">
+          <action>Define action items</action>
+        </step>
+        <step order="5">
+          <action>Publish post-mortem report</action>
+          <template>templates/operations/post-mortem.md</template>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Post-mortem completed</criterion>
+        <criterion>Action items assigned</criterion>
+        <criterion>Report published</criterion>
+      </exit_criteria>
+    </phase>
+  </phases>
+
+  <artifacts>
+    <artifact name="incident-ticket" phase="1">Incident tracking ticket</artifact>
+    <artifact name="investigation-log" phase="3">Investigation findings</artifact>
+    <artifact name="resolution-log" phase="5">Resolution details</artifact>
+    <artifact name="post-mortem" phase="7">Post-mortem report</artifact>
+  </artifacts>
+</workflow>

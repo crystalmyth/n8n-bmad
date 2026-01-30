@@ -1,0 +1,44 @@
+{
+  "name": "wf_test_valid_workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [220, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "message",
+              "value": "Hello, World!"
+            }
+          ]
+        }
+      },
+      "name": "Set Output",
+      "type": "n8n-nodes-base.set",
+      "position": [420, 300],
+      "typeVersion": 2
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  }
+}

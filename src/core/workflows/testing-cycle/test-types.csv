@@ -1,0 +1,11 @@
+type,description,when_to_use,scope,automation_level
+unit,Test individual nodes in isolation,Always,Single node,High
+integration,Test data flow between nodes,Always,Multiple connected nodes,Medium
+end_to_end,Test complete workflow execution,Always,Full workflow,Medium
+functional,Verify workflow meets requirements,Always,Full workflow,Medium
+performance,Test under load and stress,When SLA defined,Full workflow,High
+security,Test for vulnerabilities,When handling sensitive data,Full workflow,Medium
+regression,Verify fixes don't break existing,After bug fixes,Affected areas,High
+smoke,Quick verification of basic functionality,After deployment,Critical paths,High
+exploratory,Unscripted testing to find issues,After initial testing,Variable,None
+acceptance,Verify acceptance criteria met,Before release,Full workflow,Low

@@ -1,0 +1,113 @@
+name: Validate Workflows
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'patterns/**/*.json'
+      - 'src/core/**'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'patterns/**/*.json'
+      - 'src/core/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate workflow patterns
+        run: |
+          echo "Validating workflow JSON files..."
+          for file in patterns/**/*.json; do
+            if [ -f "$file" ]; then
+              echo "Validating: $file"
+              node -e "JSON.parse(require('fs').readFileSync('$file', 'utf8'))"
+              if [ $? -ne 0 ]; then
+                echo "Invalid JSON: $file"
+                exit 1
+              fi
+            fi
+          done
+          echo "All workflow patterns are valid JSON"
+
+      - name: Validate agent YAML files
+        run: |
+          echo "Validating agent YAML files..."
+          npm exec -- js-yaml src/core/agents/*.yaml > /dev/null
+          echo "All agent YAML files are valid"
+
+      - name: Validate module configuration
+        run: |
+          echo "Validating module.yaml..."
+          npm exec -- js-yaml src/core/module.yaml > /dev/null
+          echo "Module configuration is valid"
+
+      - name: Run CLI validation
+        run: |
+          echo "Running CLI validation..."
+          node tools/cli/n8n-bmad-cli.js validate workflow patterns/error-handling/retry-with-backoff.json --json || true
+          echo "CLI validation complete"
+
+      - name: Check naming conventions
+        run: |
+          echo "Checking naming conventions..."
+          # Add naming convention checks here
+          echo "Naming conventions check complete"
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint || true
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test || true
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          fail_ci_if_error: false

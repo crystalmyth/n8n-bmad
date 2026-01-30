@@ -1,0 +1,190 @@
+{
+  "name": "Pattern: Data Enrichment",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [220, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.com/orders",
+        "options": {}
+      },
+      "name": "Fetch Base Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [420, 300],
+      "typeVersion": 4
+    },
+    {
+      "parameters": {},
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [620, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "=https://api.example.com/users/{{ $json.user_id }}",
+        "options": {}
+      },
+      "name": "Enrich: User Details",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [820, 200],
+      "typeVersion": 4,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "=https://api.example.com/products/{{ $json.product_id }}",
+        "options": {}
+      },
+      "name": "Enrich: Product Details",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [820, 400],
+      "typeVersion": 4,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "order_id",
+              "field2": "order_id"
+            }
+          ]
+        }
+      },
+      "name": "Merge Enrichments",
+      "type": "n8n-nodes-base.merge",
+      "position": [1020, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\n// Combine base data with enrichments\nconst enriched = {\n  order: {\n    id: item.order_id,\n    amount: item.amount,\n    status: item.status,\n    created_at: item.created_at\n  },\n  user: {\n    id: item.user?.id,\n    name: item.user?.name,\n    email: item.user?.email\n  },\n  product: {\n    id: item.product?.id,\n    name: item.product?.name,\n    price: item.product?.price,\n    category: item.product?.category\n  },\n  enriched_at: new Date().toISOString()\n};\n\nreturn [{ json: enriched }];"
+      },
+      "name": "Format Enriched Data",
+      "type": "n8n-nodes-base.code",
+      "position": [1220, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData"
+      },
+      "name": "Collect All Results",
+      "type": "n8n-nodes-base.aggregate",
+      "position": [1420, 400],
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Fetch Base Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Base Data": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Enrich: User Details",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Enrich: Product Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrich: User Details": {
+      "main": [
+        [
+          {
+            "node": "Merge Enrichments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrich: Product Details": {
+      "main": [
+        [
+          {
+            "node": "Merge Enrichments",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Enrichments": {
+      "main": [
+        [
+          {
+            "node": "Format Enriched Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Enriched Data": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Collect All Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  },
+  "meta": {
+    "description": "Data enrichment pattern that augments records with data from multiple sources.",
+    "category": "data-transformation",
+    "usage": "Replace enrichment API calls with your data sources. Handle missing enrichment data gracefully."
+  }
+}

@@ -1,0 +1,162 @@
+# Workflow Development Process Configuration
+
+workflow:
+  id: WF-001
+  name: workflow-development
+  version: "1.0.0"
+  category: development
+
+description: |
+  End-to-end workflow development process from requirements to deployment.
+  This workflow guides teams through building quality n8n workflows.
+
+# Roles and Responsibilities
+roles:
+  primary:
+    agent: developer
+    responsibilities:
+      - Implement workflow per specification
+      - Write expressions and transformations
+      - Address review feedback
+      - Fix defects
+
+  supporting:
+    - agent: architect
+      responsibilities:
+        - Design workflow architecture
+        - Select appropriate patterns
+        - Review technical decisions
+
+    - agent: qa
+      responsibilities:
+        - Create test plans
+        - Execute tests
+        - Report defects
+
+    - agent: devops
+      responsibilities:
+        - Deploy workflow
+        - Configure environments
+        - Monitor deployment
+
+    - agent: tech-writer
+      responsibilities:
+        - Create documentation
+        - Write runbooks
+
+# Phase Configuration
+phases:
+  requirements-review:
+    duration_estimate: "2-4 hours"
+    required_inputs:
+      - Workflow specification
+      - Acceptance criteria
+    outputs:
+      - Clarified requirements
+      - Dependency list
+      - Effort estimate
+
+  architecture-design:
+    duration_estimate: "2-4 hours"
+    required_inputs:
+      - Requirements
+      - Non-functional requirements
+    outputs:
+      - Architecture document
+      - Pattern selection
+      - Error handling strategy
+
+  implementation:
+    duration_estimate: "1-5 days"
+    required_inputs:
+      - Architecture document
+      - Pattern reference
+    outputs:
+      - Workflow JSON
+      - Configured credentials
+
+  testing:
+    duration_estimate: "1-2 days"
+    required_inputs:
+      - Workflow JSON
+      - Test plan
+      - Test data
+    outputs:
+      - Test results
+      - Defect reports
+
+  code-review:
+    duration_estimate: "2-4 hours"
+    required_inputs:
+      - Workflow JSON
+      - Architecture document
+    outputs:
+      - Review feedback
+      - Approval
+
+  documentation:
+    duration_estimate: "2-4 hours"
+    required_inputs:
+      - Workflow JSON
+      - Architecture document
+    outputs:
+      - User documentation
+      - Operational runbook
+
+  deployment:
+    duration_estimate: "1-2 hours"
+    required_inputs:
+      - Approved workflow
+      - Deployment checklist
+    outputs:
+      - Deployed workflow
+      - Deployment confirmation
+
+# Quality Gates
+quality_gates:
+  - phase: implementation
+    criteria:
+      - Workflow JSON validates
+      - Naming conventions followed
+      - No hardcoded credentials
+      - Error handling implemented
+
+  - phase: testing
+    criteria:
+      - All test cases passed
+      - Edge cases covered
+      - Performance acceptable
+
+  - phase: code-review
+    criteria:
+      - Peer review approved
+      - Security review passed
+      - Documentation review passed
+
+  - phase: deployment
+    criteria:
+      - Staging deployment successful
+      - Smoke tests passed
+      - Rollback plan ready
+
+# Templates
+templates:
+  - templates/n8n-specific/workflow-spec.md
+  - templates/architecture/workflow-architecture.md
+  - templates/testing/test-plan.md
+  - templates/testing/test-report.md
+  - templates/operations/runbook.md
+
+# Metrics
+metrics:
+  - name: cycle_time
+    description: Total time from start to deployment
+    target: "< 5 days for standard workflows"
+
+  - name: defect_rate
+    description: Defects found per workflow
+    target: "< 2 defects"
+
+  - name: first_pass_yield
+    description: Percentage passing code review first time
+    target: "> 80%"

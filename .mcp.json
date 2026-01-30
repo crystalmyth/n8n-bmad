@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "n8n-bmad",
+  "version": "1.0.0",
+  "description": "MCP server configuration for n8n-BMAD framework",
+  "servers": {
+    "n8n": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-n8n"],
+      "env": {
+        "N8N_API_URL": "${N8N_INSTANCE_URL}",
+        "N8N_API_KEY": "${N8N_API_KEY}"
+      },
+      "tools": [
+        "list_workflows",
+        "get_workflow",
+        "create_workflow",
+        "update_workflow",
+        "delete_workflow",
+        "activate_workflow",
+        "deactivate_workflow",
+        "execute_workflow",
+        "get_executions",
+        "get_credentials"
+      ]
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-filesystem"],
+      "env": {
+        "ALLOWED_DIRECTORIES": "${PROJECT_ROOT}"
+      }
+    }
+  },
+  "settings": {
+    "logLevel": "info",
+    "timeout": 30000,
+    "retryAttempts": 3
+  },
+  "profiles": {
+    "development": {
+      "servers": ["n8n", "filesystem"],
+      "env": {
+        "N8N_INSTANCE_URL": "http://localhost:5678",
+        "DEBUG": "true"
+      }
+    },
+    "production": {
+      "servers": ["n8n"],
+      "env": {
+        "N8N_INSTANCE_URL": "${PROD_N8N_URL}"
+      }
+    }
+  }
+}

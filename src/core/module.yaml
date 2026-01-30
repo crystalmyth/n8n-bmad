@@ -1,0 +1,142 @@
+# n8n-BMAD Framework Configuration
+# This file defines the core framework settings and defaults
+
+framework:
+  name: n8n-BMAD
+  version: "1.0.0"
+  description: "AI-powered methodology framework for n8n workflow automation teams"
+
+# Framework Options
+options:
+  n8n_instance_url:
+    type: string
+    description: "URL of your n8n instance"
+    default: "http://localhost:5678"
+    env_var: N8N_INSTANCE_URL
+    required: true
+
+  api_key:
+    type: string
+    description: "n8n API key for authentication"
+    env_var: N8N_API_KEY
+    required: false
+    sensitive: true
+
+  naming_convention:
+    type: object
+    description: "Naming conventions for workflows and credentials"
+    default:
+      workflow_prefix: "wf_"
+      credential_prefix: "cred_"
+      environment_separator: "_"
+      use_snake_case: true
+
+  default_error_workflow:
+    type: string
+    description: "Default error handling workflow ID"
+    default: null
+
+  execution_timeout:
+    type: integer
+    description: "Default workflow execution timeout in seconds"
+    default: 300
+
+# Default Settings
+defaults:
+  workflow:
+    timezone: "UTC"
+    save_execution_progress: true
+    save_data_error_execution: "all"
+    save_data_success_execution: "all"
+    save_manual_executions: true
+
+  validation:
+    check_naming: true
+    check_credentials: true
+    check_expressions: true
+    check_connections: true
+
+  documentation:
+    auto_generate: false
+    include_execution_data: false
+    template_format: "markdown"
+
+# Output Paths
+output:
+  docs_path: "./docs/generated"
+  exports_path: "./exports"
+  backups_path: "./backups"
+  reports_path: "./reports"
+
+# Agent Configuration
+agents:
+  default_agent: "n8n-master"
+  agent_path: "./src/core/agents"
+  available_agents:
+    - n8n-master
+    - po
+    - pm
+    - sm
+    - architect
+    - developer
+    - qa
+    - devops
+    - ba
+    - security
+    - integration
+    - data-analyst
+    - tech-writer
+
+# Workflow Definitions
+workflows:
+  manifest_path: "./src/core/workflow-manifest.csv"
+  workflows_path: "./src/core/workflows"
+
+# Task Definitions
+tasks:
+  manifest_path: "./src/core/task-manifest.csv"
+  tasks_path: "./src/core/tasks"
+
+# Template Configuration
+templates:
+  path: "./templates"
+  categories:
+    - project
+    - agile
+    - architecture
+    - operations
+    - testing
+    - n8n-specific
+    - security
+
+# Pattern Library
+patterns:
+  path: "./patterns"
+  categories:
+    - error-handling
+    - integration
+    - data-transformation
+    - scheduling
+
+# Reference Documentation
+reference:
+  path: "./reference"
+  sections:
+    - expressions
+    - nodes
+    - api
+    - conventions
+
+# MCP Configuration
+mcp:
+  enabled: true
+  config_path: "./.mcp.json"
+  servers:
+    - n8n
+    - filesystem
+
+# Logging
+logging:
+  level: "info"
+  format: "text"
+  output: "console"

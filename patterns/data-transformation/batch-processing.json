@@ -1,0 +1,183 @@
+{
+  "name": "Pattern: Batch Processing",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [220, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.com/items",
+        "options": {}
+      },
+      "name": "Fetch All Items",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [420, 300],
+      "typeVersion": 4
+    },
+    {
+      "parameters": {
+        "batchSize": 50,
+        "options": {}
+      },
+      "name": "Split Into Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [620, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst batchNumber = $('Split Into Batches').context.currentRunIndex + 1;\n\nconsole.log(`Processing batch ${batchNumber}`);\n\nreturn items.map(item => {\n  const record = item.json;\n  return {\n    json: {\n      ...record,\n      processed: true,\n      batch: batchNumber,\n      processed_at: new Date().toISOString()\n    }\n  };\n});"
+      },
+      "name": "Process Batch",
+      "type": "n8n-nodes-base.code",
+      "position": [820, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.example.com/bulk-update",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}"
+      },
+      "name": "Send Batch",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1020, 300],
+      "typeVersion": 4,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "name": "Rate Limit Delay",
+      "type": "n8n-nodes-base.wait",
+      "position": [1220, 300],
+      "typeVersion": 1,
+      "notes": "Prevent rate limiting between batches"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData"
+      },
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.aggregate",
+      "position": [1420, 400],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $input.first().json;\n\nconst total = results.data.length;\nconst successful = results.data.filter(r => !r.error).length;\nconst failed = results.data.filter(r => r.error).length;\n\nreturn [{\n  json: {\n    summary: {\n      total_processed: total,\n      successful: successful,\n      failed: failed,\n      success_rate: ((successful / total) * 100).toFixed(2) + '%'\n    },\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "name": "Calculate Summary",
+      "type": "n8n-nodes-base.code",
+      "position": [1620, 400],
+      "typeVersion": 2
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Fetch All Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch All Items": {
+      "main": [
+        [
+          {
+            "node": "Split Into Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Into Batches": {
+      "main": [
+        [
+          {
+            "node": "Process Batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Batch": {
+      "main": [
+        [
+          {
+            "node": "Send Batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Batch": {
+      "main": [
+        [
+          {
+            "node": "Rate Limit Delay",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rate Limit Delay": {
+      "main": [
+        [
+          {
+            "node": "Split Into Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Into Batches": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Results": {
+      "main": [
+        [
+          {
+            "node": "Calculate Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  },
+  "meta": {
+    "description": "Batch processing pattern for handling large datasets with rate limiting and summary reporting.",
+    "category": "data-transformation",
+    "usage": "Adjust batch size based on API limits. Add error handling for production use."
+  }
+}

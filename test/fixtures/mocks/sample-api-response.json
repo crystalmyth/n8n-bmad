@@ -1,0 +1,29 @@
+{
+  "success": true,
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "name": "John Doe",
+        "email": "john@example.com",
+        "status": "active"
+      },
+      {
+        "id": 2,
+        "name": "Jane Smith",
+        "email": "jane@example.com",
+        "status": "active"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "pageSize": 10,
+      "total": 2,
+      "hasMore": false
+    }
+  },
+  "meta": {
+    "requestId": "test-123",
+    "timestamp": "2024-01-15T10:30:00Z"
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "name": "Pattern: Error Notification Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowIds": "={{ $workflow.id }}"
+      },
+      "name": "On Workflow Error",
+      "type": "n8n-nodes-base.errorTrigger",
+      "position": [220, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "workflow_name",
+              "value": "={{ $json.workflow.name }}"
+            },
+            {
+              "name": "workflow_id",
+              "value": "={{ $json.workflow.id }}"
+            },
+            {
+              "name": "execution_id",
+              "value": "={{ $json.execution.id }}"
+            },
+            {
+              "name": "error_message",
+              "value": "={{ $json.execution.error.message }}"
+            },
+            {
+              "name": "error_node",
+              "value": "={{ $json.execution.error.node?.name || 'Unknown' }}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}"
+            },
+            {
+              "name": "execution_url",
+              "value": "={{ $env.WEBHOOK_URL }}/workflow/{{ $json.workflow.id }}/executions/{{ $json.execution.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Format Error Details",
+      "type": "n8n-nodes-base.set",
+      "position": [420, 300],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "channel": "#alerts",
+        "text": "={{ ':rotating_light: *Workflow Error Alert*\\n\\n*Workflow:* ' + $json.workflow_name + '\\n*Error:* ' + $json.error_message + '\\n*Node:* ' + $json.error_node + '\\n*Time:* ' + $json.timestamp + '\\n\\n<' + $json.execution_url + '|View Execution>' }}",
+        "otherOptions": {}
+      },
+      "name": "Send Slack Alert",
+      "type": "n8n-nodes-base.slack",
+      "position": [620, 200],
+      "typeVersion": 2,
+      "notes": "Configure your Slack credentials"
+    },
+    {
+      "parameters": {
+        "fromEmail": "alerts@example.com",
+        "toEmail": "team@example.com",
+        "subject": "=Workflow Error: {{ $json.workflow_name }}",
+        "text": "=A workflow error occurred:\n\nWorkflow: {{ $json.workflow_name }}\nExecution ID: {{ $json.execution_id }}\nError: {{ $json.error_message }}\nFailed Node: {{ $json.error_node }}\nTime: {{ $json.timestamp }}\n\nView Execution: {{ $json.execution_url }}"
+      },
+      "name": "Send Email Alert",
+      "type": "n8n-nodes-base.emailSend",
+      "position": [620, 400],
+      "typeVersion": 2,
+      "notes": "Configure your email credentials"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-logging-service.com/api/errors",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ level: 'error', service: 'n8n', workflow: $json.workflow_name, execution_id: $json.execution_id, error: $json.error_message, node: $json.error_node, timestamp: $json.timestamp }) }}"
+      },
+      "name": "Log to Monitoring Service",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [820, 300],
+      "typeVersion": 4,
+      "continueOnFail": true,
+      "notes": "Optional: Send to Datadog, Splunk, etc."
+    }
+  ],
+  "connections": {
+    "On Workflow Error": {
+      "main": [
+        [
+          {
+            "node": "Format Error Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Error Details": {
+      "main": [
+        [
+          {
+            "node": "Send Slack Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Email Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Slack Alert": {
+      "main": [
+        [
+          {
+            "node": "Log to Monitoring Service",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all"
+  },
+  "meta": {
+    "description": "Error notification workflow that alerts via Slack, email, and logging services when workflows fail.",
+    "category": "error-handling",
+    "usage": "Set this as the Error Workflow for your production workflows. Configure notification channels as needed."
+  }
+}

@@ -1,0 +1,314 @@
+{
+  "name": "Pattern: Circuit Breaker",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [220, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.com/circuit-state",
+        "options": {}
+      },
+      "name": "Get Circuit State",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [420, 300],
+      "typeVersion": 4,
+      "notes": "Replace with your state storage (Redis, database, static data, etc.)"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.state || 'closed' }}",
+              "value2": "open"
+            }
+          ]
+        }
+      },
+      "name": "Circuit Open?",
+      "type": "n8n-nodes-base.if",
+      "position": [620, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "circuit_open"
+            },
+            {
+              "name": "message",
+              "value": "Service temporarily unavailable. Circuit breaker is open."
+            }
+          ]
+        }
+      },
+      "name": "Return Circuit Open Response",
+      "type": "n8n-nodes-base.set",
+      "position": [820, 200],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.com/endpoint",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "name": "Call Protected Service",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [820, 400],
+      "typeVersion": 4,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.error === undefined }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Call Succeeded?",
+      "type": "n8n-nodes-base.if",
+      "position": [1020, 400],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.example.com/circuit-state",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "action",
+              "value": "reset"
+            },
+            {
+              "name": "failure_count",
+              "value": "0"
+            }
+          ]
+        }
+      },
+      "name": "Reset Failure Count",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1220, 300],
+      "typeVersion": 4
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.example.com/circuit-state",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "action",
+              "value": "increment_failure"
+            }
+          ]
+        }
+      },
+      "name": "Increment Failure Count",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1220, 500],
+      "typeVersion": 4
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.failure_count || 0 }}",
+              "operation": "largerEqual",
+              "value2": 5
+            }
+          ]
+        }
+      },
+      "name": "Threshold Exceeded?",
+      "type": "n8n-nodes-base.if",
+      "position": [1420, 500],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.example.com/circuit-state",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "action",
+              "value": "open_circuit"
+            },
+            {
+              "name": "open_until",
+              "value": "={{ $now.plus({minutes: 5}).toISO() }}"
+            }
+          ]
+        }
+      },
+      "name": "Open Circuit",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1620, 400],
+      "typeVersion": 4
+    },
+    {
+      "parameters": {},
+      "name": "Success Output",
+      "type": "n8n-nodes-base.noOp",
+      "position": [1420, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "name": "Failure Output",
+      "type": "n8n-nodes-base.noOp",
+      "position": [1620, 600],
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Get Circuit State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Circuit State": {
+      "main": [
+        [
+          {
+            "node": "Circuit Open?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Circuit Open?": {
+      "main": [
+        [
+          {
+            "node": "Return Circuit Open Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call Protected Service",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Protected Service": {
+      "main": [
+        [
+          {
+            "node": "Call Succeeded?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Succeeded?": {
+      "main": [
+        [
+          {
+            "node": "Reset Failure Count",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Increment Failure Count",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reset Failure Count": {
+      "main": [
+        [
+          {
+            "node": "Success Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Increment Failure Count": {
+      "main": [
+        [
+          {
+            "node": "Threshold Exceeded?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Threshold Exceeded?": {
+      "main": [
+        [
+          {
+            "node": "Open Circuit",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Failure Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Open Circuit": {
+      "main": [
+        [
+          {
+            "node": "Failure Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  },
+  "meta": {
+    "description": "Circuit breaker pattern to prevent cascade failures. Opens circuit after threshold failures.",
+    "category": "error-handling",
+    "usage": "Replace state storage with Redis, database, or n8n static data. Adjust failure threshold and timeout."
+  }
+}

@@ -1,0 +1,34 @@
+phase,item,description,required,notes
+requirements-review,spec_review,Review workflow specification document,yes,Understand all requirements before starting
+requirements-review,acceptance_criteria,Review acceptance criteria with PO,yes,Ensure criteria are testable
+requirements-review,dependencies,Identify external dependencies,yes,APIs credentials systems
+requirements-review,estimate,Provide effort estimate,yes,Use story points
+architecture-design,pattern_select,Select appropriate workflow pattern,yes,Check patterns library
+architecture-design,data_flow,Design data flow between nodes,yes,Document transformations
+architecture-design,error_handling,Plan error handling strategy,yes,Consider all failure modes
+architecture-design,security_review,Review security requirements,yes,Credential handling data protection
+implementation,trigger_config,Configure trigger node correctly,yes,Test trigger before continuing
+implementation,node_sequence,Implement nodes per design,yes,Follow architecture document
+implementation,expressions,Write and test all expressions,yes,Use expression validator
+implementation,error_branches,Implement error handling branches,yes,Test error paths
+implementation,naming,Apply naming conventions,yes,Use configured prefix
+implementation,credentials,Configure credentials via store,yes,Never hardcode secrets
+implementation,notes,Add descriptive notes to nodes,recommended,Help future maintainers
+testing,test_data,Create test data sets,yes,Happy path and error cases
+testing,happy_path,Execute happy path tests,yes,All scenarios pass
+testing,error_path,Execute error path tests,yes,Errors handled correctly
+testing,edge_cases,Test edge cases,yes,Boundaries empty values
+testing,performance,Test performance with realistic data,recommended,Check execution time
+testing,document_results,Document test results,yes,Use test report template
+code-review,submit,Submit for peer review,yes,Include all documentation
+code-review,feedback,Address all feedback,yes,Re-test after changes
+code-review,approval,Obtain review approval,yes,Required before deployment
+documentation,usage_doc,Document workflow usage,yes,How to use and configure
+documentation,data_flow_doc,Document data transformations,yes,Field mappings and logic
+documentation,runbook,Create operational runbook,yes,Support and troubleshooting
+deployment,export,Export workflow JSON,yes,Backup current version
+deployment,staging,Deploy to staging,yes,Test in staging first
+deployment,smoke_test,Execute smoke tests,yes,Verify basic functionality
+deployment,production,Deploy to production,yes,After staging success
+deployment,activate,Activate workflow,yes,Enable in production
+deployment,monitor,Monitor initial executions,yes,Watch for errors

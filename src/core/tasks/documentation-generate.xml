@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<task id="TASK-004" name="documentation-generate" version="1.0.0">
+  <metadata>
+    <description>Generate documentation from n8n workflow</description>
+    <category>documentation</category>
+    <agents>tech-writer,developer</agents>
+  </metadata>
+
+  <input>
+    <parameter name="workflow_json" type="file" required="true">
+      <description>The n8n workflow JSON to document</description>
+    </parameter>
+    <parameter name="doc_type" type="enum" required="false" default="full">
+      <options>summary,full,runbook,api</options>
+      <description>Type of documentation to generate</description>
+    </parameter>
+    <parameter name="include_diagrams" type="boolean" required="false" default="true">
+      <description>Whether to include flow diagrams</description>
+    </parameter>
+  </input>
+
+  <output>
+    <artifact name="documentation" type="markdown">
+      <description>Generated workflow documentation</description>
+    </artifact>
+  </output>
+
+  <steps>
+    <step id="1" name="parse-workflow">
+      <action>Parse workflow structure</action>
+      <extract>
+        <field>name</field>
+        <field>nodes</field>
+        <field>connections</field>
+        <field>settings</field>
+        <field>staticData</field>
+      </extract>
+    </step>
+
+    <step id="2" name="analyze-structure">
+      <action>Analyze workflow structure</action>
+      <analysis>
+        <item>Identify trigger type</item>
+        <item>Map node sequence</item>
+        <item>Identify branches and conditions</item>
+        <item>List external integrations</item>
+        <item>Identify data transformations</item>
+      </analysis>
+    </step>
+
+    <step id="3" name="extract-metadata">
+      <action>Extract workflow metadata</action>
+      <metadata>
+        <item>Workflow name and description</item>
+        <item>Created/updated dates</item>
+        <item>Tags and categories</item>
+        <item>Error workflow configuration</item>
+        <item>Timezone settings</item>
+      </metadata>
+    </step>
+
+    <step id="4" name="document-trigger">
+      <action>Document trigger configuration</action>
+      <sections>
+        <section>Trigger type and configuration</section>
+        <section>Schedule or webhook details</section>
+        <section>Input data format</section>
+        <section>Authentication requirements</section>
+      </sections>
+    </step>
+
+    <step id="5" name="document-nodes">
+      <action>Document each node</action>
+      <per_node>
+        <item>Node name and type</item>
+        <item>Purpose and function</item>
+        <item>Input data expected</item>
+        <item>Output data produced</item>
+        <item>Configuration details</item>
+        <item>Expressions used</item>
+      </per_node>
+    </step>
+
+    <step id="6" name="document-data-flow">
+      <action>Document data transformations</action>
+      <sections>
+        <section>Input to output mapping</section>
+        <section>Field transformations</section>
+        <section>Data type changes</section>
+        <section>Aggregations and calculations</section>
+      </sections>
+    </step>
+
+    <step id="7" name="document-error-handling">
+      <action>Document error handling</action>
+      <sections>
+        <section>Error workflow configuration</section>
+        <section>Error branches</section>
+        <section>Retry logic</section>
+        <section>Notification configuration</section>
+      </sections>
+    </step>
+
+    <step id="8" name="generate-diagram" condition="include_diagrams">
+      <action>Generate flow diagram</action>
+      <format>mermaid</format>
+      <template>
+        ```mermaid
+        graph TD
+          {nodes_and_connections}
+        ```
+      </template>
+    </step>
+
+    <step id="9" name="compile-documentation">
+      <action>Compile final documentation</action>
+      <template>
+        # {workflow_name}
+
+        ## Overview
+        {description}
+
+        ## Quick Reference
+        | Property | Value |
+        |----------|-------|
+        | Trigger | {trigger_type} |
+        | Nodes | {node_count} |
+        | Integrations | {integrations} |
+
+        ## Flow Diagram
+        {flow_diagram}
+
+        ## Trigger
+        {trigger_documentation}
+
+        ## Process Flow
+        {node_documentation}
+
+        ## Data Transformations
+        {data_flow_documentation}
+
+        ## Error Handling
+        {error_handling_documentation}
+
+        ## Dependencies
+        - Credentials: {credentials_list}
+        - External Services: {services_list}
+
+        ## Maintenance Notes
+        {maintenance_notes}
+      </template>
+    </step>
+  </steps>
+
+  <doc_types>
+    <type name="summary">
+      <description>Brief overview for stakeholders</description>
+      <sections>overview,quick_reference,flow_diagram</sections>
+    </type>
+    <type name="full">
+      <description>Complete technical documentation</description>
+      <sections>all</sections>
+    </type>
+    <type name="runbook">
+      <description>Operational runbook for support</description>
+      <sections>overview,error_handling,troubleshooting,contacts</sections>
+    </type>
+    <type name="api">
+      <description>API documentation for webhooks</description>
+      <sections>endpoints,authentication,payloads,responses</sections>
+    </type>
+  </doc_types>
+</task>

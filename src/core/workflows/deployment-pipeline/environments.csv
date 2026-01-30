@@ -1,0 +1,4 @@
+environment,url,purpose,credentials_scope,approval_required,monitoring
+development,http://localhost:5678,Local development and testing,personal,no,basic
+staging,https://staging-n8n.example.com,Integration testing and UAT,team,no,standard
+production,https://n8n.example.com,Live workflow execution,production,yes,full

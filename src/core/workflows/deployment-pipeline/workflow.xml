@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="WF-003" name="deployment-pipeline" version="1.0.0">
+  <metadata>
+    <description>Deploy workflows safely through environments with proper validation</description>
+    <category>operations</category>
+    <primary_agent>devops</primary_agent>
+    <supporting_agents>developer,qa</supporting_agents>
+  </metadata>
+
+  <phases>
+    <phase id="1" name="pre-deployment">
+      <description>Validate deployment readiness</description>
+      <agent>devops</agent>
+      <steps>
+        <step order="1">
+          <action>Verify code review approval</action>
+          <required>true</required>
+        </step>
+        <step order="2">
+          <action>Validate workflow JSON</action>
+        </step>
+        <step order="3">
+          <action>Check credential availability in target</action>
+        </step>
+        <step order="4">
+          <action>Review deployment checklist</action>
+        </step>
+        <step order="5">
+          <action>Confirm rollback plan</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>All pre-deployment checks pass</criterion>
+        <criterion>Rollback plan documented</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="2" name="staging-deployment">
+      <description>Deploy to staging environment</description>
+      <agent>devops</agent>
+      <steps>
+        <step order="1">
+          <action>Backup current staging workflow if exists</action>
+        </step>
+        <step order="2">
+          <action>Import workflow to staging</action>
+        </step>
+        <step order="3">
+          <action>Configure staging-specific settings</action>
+        </step>
+        <step order="4">
+          <action>Activate workflow in staging</action>
+        </step>
+        <step order="5">
+          <action>Verify deployment success</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Workflow deployed to staging</criterion>
+        <criterion>Workflow activated</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="3" name="staging-validation">
+      <description>Validate deployment in staging</description>
+      <agent>qa</agent>
+      <steps>
+        <step order="1">
+          <action>Execute smoke tests</action>
+        </step>
+        <step order="2">
+          <action>Verify integrations work</action>
+        </step>
+        <step order="3">
+          <action>Check error handling</action>
+        </step>
+        <step order="4">
+          <action>Validate data flow</action>
+        </step>
+        <step order="5">
+          <action>Document validation results</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>All smoke tests pass</criterion>
+        <criterion>Integrations verified</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="4" name="production-approval">
+      <description>Approve production deployment</description>
+      <agent>pm</agent>
+      <steps>
+        <step order="1">
+          <action>Review staging validation results</action>
+        </step>
+        <step order="2">
+          <action>Confirm deployment window</action>
+        </step>
+        <step order="3">
+          <action>Notify stakeholders</action>
+        </step>
+        <step order="4">
+          <action>Approve production deployment</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Production deployment approved</criterion>
+        <criterion>Stakeholders notified</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="5" name="production-deployment">
+      <description>Deploy to production environment</description>
+      <agent>devops</agent>
+      <steps>
+        <step order="1">
+          <action>Backup current production workflow</action>
+          <required>true</required>
+        </step>
+        <step order="2">
+          <action>Deactivate current workflow if updating</action>
+          <condition>If workflow exists</condition>
+        </step>
+        <step order="3">
+          <action>Import workflow to production</action>
+        </step>
+        <step order="4">
+          <action>Configure production settings</action>
+        </step>
+        <step order="5">
+          <action>Activate workflow</action>
+        </step>
+        <step order="6">
+          <action>Verify activation</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Workflow deployed to production</criterion>
+        <criterion>Workflow active</criterion>
+        <criterion>Backup confirmed</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="6" name="post-deployment">
+      <description>Verify production deployment</description>
+      <agent>devops</agent>
+      <steps>
+        <step order="1">
+          <action>Execute production smoke tests</action>
+        </step>
+        <step order="2">
+          <action>Monitor initial executions</action>
+        </step>
+        <step order="3">
+          <action>Verify monitoring and alerting</action>
+        </step>
+        <step order="4">
+          <action>Document deployment completion</action>
+        </step>
+        <step order="5">
+          <action>Notify stakeholders of completion</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Smoke tests pass</criterion>
+        <criterion>Initial executions successful</criterion>
+        <criterion>Monitoring confirmed</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="7" name="rollback">
+      <description>Rollback if issues detected</description>
+      <agent>devops</agent>
+      <condition>If deployment issues detected</condition>
+      <steps>
+        <step order="1">
+          <action>Deactivate problematic workflow</action>
+        </step>
+        <step order="2">
+          <action>Restore from backup</action>
+        </step>
+        <step order="3">
+          <action>Activate restored workflow</action>
+        </step>
+        <step order="4">
+          <action>Verify restoration</action>
+        </step>
+        <step order="5">
+          <action>Document rollback and root cause</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Previous version restored</criterion>
+        <criterion>Service operational</criterion>
+        <criterion>Incident documented</criterion>
+      </exit_criteria>
+    </phase>
+  </phases>
+
+  <artifacts>
+    <artifact name="workflow-backup" phase="5">Production workflow backup</artifact>
+    <artifact name="deployment-log" phase="6">Deployment log and results</artifact>
+    <artifact name="rollback-doc" phase="7">Rollback documentation</artifact>
+  </artifacts>
+</workflow>

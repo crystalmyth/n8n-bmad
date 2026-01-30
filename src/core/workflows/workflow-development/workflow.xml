@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow id="WF-001" name="workflow-development" version="1.0.0">
+  <metadata>
+    <description>End-to-end workflow development process from requirements to deployment</description>
+    <category>development</category>
+    <primary_agent>developer</primary_agent>
+    <supporting_agents>architect,qa</supporting_agents>
+  </metadata>
+
+  <phases>
+    <phase id="1" name="requirements-review">
+      <description>Review and understand requirements</description>
+      <agent>developer</agent>
+      <steps>
+        <step order="1">
+          <action>Review workflow specification document</action>
+          <inputs>
+            <input>Workflow specification</input>
+            <input>Acceptance criteria</input>
+          </inputs>
+        </step>
+        <step order="2">
+          <action>Clarify any ambiguous requirements with PO/BA</action>
+          <condition>If requirements unclear</condition>
+        </step>
+        <step order="3">
+          <action>Identify technical dependencies</action>
+          <outputs>
+            <output>Dependency list</output>
+          </outputs>
+        </step>
+        <step order="4">
+          <action>Estimate implementation effort</action>
+          <outputs>
+            <output>Story point estimate</output>
+          </outputs>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Requirements understood and documented</criterion>
+        <criterion>Dependencies identified</criterion>
+        <criterion>Estimate provided</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="2" name="architecture-design">
+      <description>Design workflow architecture</description>
+      <agent>architect</agent>
+      <steps>
+        <step order="1">
+          <action>Select appropriate workflow pattern</action>
+          <reference>patterns/</reference>
+        </step>
+        <step order="2">
+          <action>Design node sequence and data flow</action>
+        </step>
+        <step order="3">
+          <action>Plan error handling strategy</action>
+        </step>
+        <step order="4">
+          <action>Document architecture decisions</action>
+          <template>templates/architecture/workflow-architecture.md</template>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Architecture documented</criterion>
+        <criterion>Pattern selected</criterion>
+        <criterion>Error handling planned</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="3" name="implementation">
+      <description>Build the workflow</description>
+      <agent>developer</agent>
+      <steps>
+        <step order="1">
+          <action>Configure trigger node</action>
+          <checklist_ref>trigger-setup</checklist_ref>
+        </step>
+        <step order="2">
+          <action>Implement node sequence per design</action>
+        </step>
+        <step order="3">
+          <action>Write expressions for data transformation</action>
+          <reference>reference/expressions/</reference>
+        </step>
+        <step order="4">
+          <action>Implement error handling branches</action>
+        </step>
+        <step order="5">
+          <action>Add descriptive node names and notes</action>
+        </step>
+        <step order="6">
+          <action>Configure credentials securely</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Workflow builds without errors</criterion>
+        <criterion>All nodes configured</criterion>
+        <criterion>Naming conventions followed</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="4" name="testing">
+      <description>Test workflow functionality</description>
+      <agent>qa</agent>
+      <steps>
+        <step order="1">
+          <action>Create test data sets</action>
+        </step>
+        <step order="2">
+          <action>Execute happy path tests</action>
+        </step>
+        <step order="3">
+          <action>Execute error path tests</action>
+        </step>
+        <step order="4">
+          <action>Test edge cases</action>
+        </step>
+        <step order="5">
+          <action>Document test results</action>
+          <template>templates/testing/test-report.md</template>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>All test cases passed</criterion>
+        <criterion>Test report completed</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="5" name="code-review">
+      <description>Review workflow implementation</description>
+      <agent>developer</agent>
+      <steps>
+        <step order="1">
+          <action>Submit workflow for peer review</action>
+        </step>
+        <step order="2">
+          <action>Address review feedback</action>
+          <condition>If feedback received</condition>
+        </step>
+        <step order="3">
+          <action>Obtain review approval</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Review approved</criterion>
+        <criterion>Feedback addressed</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="6" name="documentation">
+      <description>Create workflow documentation</description>
+      <agent>tech-writer</agent>
+      <steps>
+        <step order="1">
+          <action>Document workflow purpose and usage</action>
+        </step>
+        <step order="2">
+          <action>Document data flow and transformations</action>
+        </step>
+        <step order="3">
+          <action>Create operational runbook</action>
+          <template>templates/operations/runbook.md</template>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Documentation complete</criterion>
+        <criterion>Runbook created</criterion>
+      </exit_criteria>
+    </phase>
+
+    <phase id="7" name="deployment">
+      <description>Deploy to target environment</description>
+      <agent>devops</agent>
+      <steps>
+        <step order="1">
+          <action>Export workflow JSON</action>
+        </step>
+        <step order="2">
+          <action>Deploy to staging environment</action>
+        </step>
+        <step order="3">
+          <action>Execute smoke tests</action>
+        </step>
+        <step order="4">
+          <action>Deploy to production</action>
+          <condition>If smoke tests pass</condition>
+        </step>
+        <step order="5">
+          <action>Activate workflow</action>
+        </step>
+        <step order="6">
+          <action>Monitor initial executions</action>
+        </step>
+      </steps>
+      <exit_criteria>
+        <criterion>Deployed to production</criterion>
+        <criterion>Workflow active</criterion>
+        <criterion>Initial executions successful</criterion>
+      </exit_criteria>
+    </phase>
+  </phases>
+
+  <artifacts>
+    <artifact name="workflow-spec" phase="1">Workflow specification document</artifact>
+    <artifact name="architecture-doc" phase="2">Architecture decision document</artifact>
+    <artifact name="workflow-json" phase="3">n8n workflow JSON</artifact>
+    <artifact name="test-report" phase="4">Test execution report</artifact>
+    <artifact name="documentation" phase="6">Workflow documentation</artifact>
+    <artifact name="runbook" phase="6">Operational runbook</artifact>
+  </artifacts>
+</workflow>

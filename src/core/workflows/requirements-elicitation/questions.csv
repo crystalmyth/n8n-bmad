@@ -1,0 +1,20 @@
+category,question,purpose,follow_up
+process,Can you walk me through the current process step by step?,Understand current workflow,What triggers this process to start?
+process,How often does this process run?,Determine frequency and volume,What's the peak volume?
+process,Who is involved in this process?,Identify stakeholders and roles,What decisions do they make?
+process,What systems or tools are used?,Identify integration points,Do these systems have APIs?
+pain_points,What are the biggest challenges with the current process?,Identify automation opportunities,How much time is lost to this issue?
+pain_points,Where do errors typically occur?,Find reliability issues,What's the impact of these errors?
+pain_points,What manual steps are most time-consuming?,Prioritize automation,How long does this step take?
+pain_points,Are there any compliance or audit concerns?,Identify regulatory requirements,What documentation is required?
+data,What data is needed to complete this process?,Define data requirements,Where does this data come from?
+data,What format is the data currently in?,Identify transformation needs,What format is needed for the output?
+data,How is data quality ensured today?,Understand validation needs,What happens when data is invalid?
+data,Are there any sensitive data considerations?,Identify security requirements,What data protection is required?
+integration,What external systems need to be connected?,Map integration landscape,Is there API documentation available?
+integration,How do systems authenticate?,Understand security model,Who manages these credentials?
+integration,What happens when an external system is unavailable?,Define error handling,Is there a fallback process?
+requirements,What would success look like for this automation?,Define success criteria,How will we measure improvement?
+requirements,Are there any constraints we need to work within?,Identify limitations,Are these hard constraints?
+requirements,What's the timeline for this automation?,Understand urgency,What's driving this timeline?
+requirements,Who needs to approve this automation?,Identify approval chain,What are their concerns?
