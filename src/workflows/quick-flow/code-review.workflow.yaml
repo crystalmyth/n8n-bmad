@@ -1,0 +1,172 @@
+# Code Review Workflow
+# Conduct comprehensive quality review of workflows
+# Usage: Type "CR" or use /n8n-code-review
+
+workflow:
+  id: code-review
+  name: "Code Review"
+  trigger: "CR"
+  description: "Comprehensive workflow quality review"
+  standalone: true
+
+purpose: |
+  Conduct a thorough review of an n8n workflow, checking for
+  quality, security, performance, and best practices.
+
+inputs:
+  - name: workflow_path
+    description: "Path to workflow JSON file"
+    required: true
+
+  - name: review_type
+    description: "Type of review: full, quick, security, performance"
+    required: false
+    default: "full"
+
+review_categories:
+  structure:
+    weight: 20
+    checks:
+      - Workflow has clear, descriptive name
+      - Nodes are logically organized
+      - Connections are properly defined
+      - No orphaned nodes
+      - Sub-workflows used appropriately
+
+  naming:
+    weight: 15
+    checks:
+      - Node names are descriptive
+      - Follows naming conventions (wf_, cred_)
+      - No default node names (e.g., "HTTP Request1")
+      - Consistent casing
+
+  error_handling:
+    weight: 25
+    checks:
+      - Error workflow configured
+      - Try-catch patterns for risky operations
+      - Appropriate error notifications
+      - Graceful degradation implemented
+      - Retry logic where needed
+
+  security:
+    weight: 20
+    checks:
+      - Credentials stored properly (not hardcoded)
+      - No sensitive data in expressions
+      - Input validation present
+      - Webhook authentication configured
+      - Least privilege principle applied
+
+  performance:
+    weight: 10
+    checks:
+      - Batch processing for large datasets
+      - Rate limiting considered
+      - Unnecessary nodes eliminated
+      - Efficient expressions used
+      - Pagination handled properly
+
+  documentation:
+    weight: 10
+    checks:
+      - Workflow description present
+      - Complex nodes have notes
+      - Data flow documented
+      - Dependencies noted
+
+scoring:
+  excellent: 90-100
+  good: 75-89
+  needs_improvement: 50-74
+  poor: 0-49
+
+steps:
+  1_load:
+    description: "Load workflow for review"
+    actions:
+      - Parse workflow JSON
+      - Identify all nodes and connections
+      - Gather metadata
+
+  2_analyze:
+    description: "Run review checks"
+    actions:
+      - Check each category
+      - Score each item
+      - Note issues and suggestions
+
+  3_report:
+    description: "Generate review report"
+    template: |
+      # Workflow Code Review
+
+      **Workflow:** {workflow_name}
+      **Reviewed:** {date}
+      **Overall Score:** {score}/100 ({rating})
+
+      ## Summary
+      {summary}
+
+      ## Category Scores
+      | Category | Score | Status |
+      |----------|-------|--------|
+      | Structure | {structure_score}/20 | {status} |
+      | Naming | {naming_score}/15 | {status} |
+      | Error Handling | {error_score}/25 | {status} |
+      | Security | {security_score}/20 | {status} |
+      | Performance | {perf_score}/10 | {status} |
+      | Documentation | {doc_score}/10 | {status} |
+
+      ## Issues Found
+
+      ### Critical
+      {critical_issues}
+
+      ### Warnings
+      {warnings}
+
+      ### Suggestions
+      {suggestions}
+
+      ## Recommendations
+      {recommendations}
+
+instructions: |
+  ## Code Review Instructions
+
+  When invoked, follow these steps:
+
+  1. **Load Workflow**
+     - Ask for workflow path or ID
+     - Parse the workflow JSON
+     - Display basic info
+
+  2. **Run Analysis**
+     - Check each review category
+     - Score each check (0 = fail, 1 = pass)
+     - Calculate weighted scores
+
+  3. **Generate Report**
+     - Calculate overall score
+     - List issues by severity
+     - Provide specific recommendations
+
+  4. **Offer Actions**
+     - Fix critical issues automatically?
+     - Generate improvement stories?
+     - Save report to file?
+
+  **Review Types:**
+  - `full` - All categories (default)
+  - `quick` - Structure and naming only
+  - `security` - Security checks only
+  - `performance` - Performance checks only
+
+checklist:
+  - Workflow loaded successfully
+  - All categories reviewed
+  - Issues categorized by severity
+  - Actionable recommendations provided
+  - Report formatted properly

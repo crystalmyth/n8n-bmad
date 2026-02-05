@@ -6,7 +6,7 @@ Welcome to the n8n-BMAD framework documentation. This framework brings AI-powere
 
 n8n-BMAD is a comprehensive framework that combines:
 
-- **13 Specialized AI Agent Personas** - From Product Owner to DevOps Engineer, each agent provides domain-specific guidance
+- **15 Specialized AI Agent Personas** - From Product Owner to DevOps Engineer, each agent provides domain-specific guidance
 - **Reusable Workflow Patterns** - Battle-tested patterns for error handling, integrations, and data transformation
 - **Project Templates** - PRDs, ADRs, runbooks, test plans, and more
 - **CLI Tooling** - Initialize, validate, and manage your n8n projects

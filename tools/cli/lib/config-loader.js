@@ -23,7 +23,7 @@ const DEFAULT_CONFIG = {
   },
   options: {
     n8n_instance_url: {
-      default: 'http://localhost:5678',
+      default: 'http://localhost:5678/api/v1',
       env_var: 'N8N_INSTANCE_URL',
     },
     naming_convention: {
@@ -177,6 +177,23 @@ function deepMerge(target, source) {
 }
 
 /**
+ * Find the config file path, checking .n8n-bmad folder first
+ * @async
+ * @param {string} defaultPath - Default config path
+ * @returns {Promise<string>} Resolved config path
+ */
+async function findConfigPath(defaultPath) {
+  // Check .n8n-bmad folder first (project initialized with init command)
+  const bmadConfigPath = path.resolve(process.cwd(), '.n8n-bmad', defaultPath);
+  if (await fileExists(bmadConfigPath)) {
+    return bmadConfigPath;
+  }
+
+  // Fall back to direct path (for development or direct usage)
+  return resolveConfigPath(defaultPath);
+}
+
+/**
  * Load and parse the configuration file
  * @async
  * @param {string} [configPath='./src/core/module.yaml'] - Path to config file
@@ -194,7 +211,7 @@ async function loadConfig(configPath = './src/core/module.yaml', options = {}) {
     return configCache;
   }
 
-  const resolvedPath = resolveConfigPath(configPath);
+  const resolvedPath = await findConfigPath(configPath);
 
   // Check if file exists
   if (!await fileExists(resolvedPath)) {
@@ -295,7 +312,7 @@ async function getN8nUrl(configPath) {
 
   // Then check config
   const urlConfig = await getConfigValue('options.n8n_instance_url', {}, configPath);
-  return urlConfig.default || 'http://localhost:5678';
+  return urlConfig.default || 'http://localhost:5678/api/v1';
 }
 
 /**
@@ -418,6 +435,7 @@ module.exports = {
   validateConfig,
   clearCache,
   resolveConfigPath,
+  findConfigPath,
   fileExists,
   deepMerge,
 };

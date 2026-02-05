@@ -1,0 +1,40 @@
+framework:
+  name: "n8n-BMAD"
+  version: "1.0.0"
+  description: "Test configuration"
+
+agents:
+  default_agent: n8n-master
+  agent_path: "./src/core/agents"
+  available_agents:
+    - n8n-master
+    - developer
+    - architect
+
+templates:
+  path: "./templates"
+  categories:
+    - project
+    - agile
+
+options:
+  n8n_instance_url:
+    default: "http://localhost:5678/api/v1"
+    env_var: N8N_INSTANCE_URL
+  naming_convention:
+    default:
+      workflow_prefix: "wf_"
+      credential_prefix: "cred_"
+      use_snake_case: true
+
+defaults:
+  workflow:
+    timezone: UTC
+
+output:
+  docs_path: "./docs/generated"
+
+patterns:
+  path: "./patterns"
+  categories:
+    - error-handling

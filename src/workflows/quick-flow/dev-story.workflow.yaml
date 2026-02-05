@@ -1,0 +1,134 @@
+# Dev Story Workflow
+# Execute a single story with tests and validation
+# Usage: Type "DS" or use /n8n-dev-story
+
+workflow:
+  id: dev-story
+  name: "Dev Story"
+  trigger: "DS"
+  description: "Implement a user story with tests and validation"
+  standalone: true
+
+purpose: |
+  Execute a user story from start to finish, including implementation,
+  testing, and validation against acceptance criteria.
+
+inputs:
+  - name: story_path
+    description: "Path to story file or story content"
+    required: true
+
+  - name: auto_test
+    description: "Run tests automatically after implementation"
+    required: false
+    default: true
+
+steps:
+  1_read_story:
+    description: "Read and understand the story"
+    actions:
+      - Load story file from ./docs/backlog/stories/
+      - Parse acceptance criteria
+      - Identify subtasks
+      - Note technical requirements
+      - Check dependencies
+
+  2_plan_implementation:
+    description: "Plan the implementation approach"
+    outputs:
+      - Implementation steps
+      - Files to modify/create
+      - Nodes to configure
+      - Test cases needed
+
+  3_implement:
+    description: "Execute implementation"
+    rules:
+      - Follow subtasks in order
+      - Check off each subtask when complete
+      - Write tests alongside code
+      - Document as you go
+
+    checklist:
+      - [ ] Read entire story before starting
+      - [ ] Implement each subtask sequentially
+      - [ ] Write tests for each feature
+      - [ ] Update story file with progress
+
+  4_test:
+    description: "Validate implementation"
+    test_types:
+      - Unit tests for individual nodes
+      - Integration tests for data flow
+      - End-to-end workflow test
+      - Acceptance criteria validation
+
+  5_update_story:
+    description: "Update story status"
+    actions:
+      - Mark subtasks complete
+      - Update status to "Review"
+      - Document any blockers or notes
+      - Prepare for code review
+
+instructions: |
+  ## Dev Story Instructions
+
+  When invoked, follow these steps:
+
+  1. **Load the Story**
+     - Ask for story ID or path
+     - Read story from ./docs/backlog/stories/story-{id}.md
+     - Display story summary and acceptance criteria
+
+  2. **Plan Implementation**
+     - Review subtasks
+     - Identify dependencies
+     - Confirm approach with user
+
+  3. **Implement Sequentially**
+     - Work through each subtask in order
+     - DO NOT skip or reorder tasks
+     - Mark each complete only when tests pass
+     - Update story file as you progress
+
+  4. **Test Thoroughly**
+     - Test each subtask individually
+     - Run full workflow test
+     - Validate against acceptance criteria
+     - Document test results
+
+  5. **Complete**
+     - Mark story status as "Review"
+     - Update all subtask checkboxes
+     - Add implementation notes
+
+  **Critical Rules:**
+  - Never claim a task is done without passing tests
+  - Never skip subtasks
+  - Always update the story file with progress
+
+output_format: |
+  ## Dev Story Progress
+
+  **Story:** {story_id} - {story_title}
+  **Status:** {status}
+
+  ### Subtasks
+  {subtask_list_with_checkboxes}
+
+  ### Test Results
+  - Unit Tests: {pass_count}/{total_count}
+  - Integration: {status}
+  - Acceptance Criteria: {ac_status}
+
+  ### Next Steps
+  {next_steps}
+
+checklist:
+  - Story file read completely
+  - All subtasks identified
+  - Implementation follows task order
+  - Tests pass for each completed task
+  - Story file updated with progress
+  - Status updated when complete

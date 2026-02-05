@@ -1,0 +1,19 @@
+{
+  "nodes": {
+    "core": [
+      { "type": "n8n-nodes-base.httpRequest", "displayName": "HTTP Request", "description": "Makes HTTP requests", "category": "core" },
+      { "type": "n8n-nodes-base.set", "displayName": "Set", "description": "Sets values", "category": "core" }
+    ],
+    "community": [
+      { "type": "n8n-nodes-coolpackage.myNode", "displayName": "Cool Node", "description": "Community node", "category": "community" }
+    ],
+    "custom": [
+      { "type": "custom.specialNode", "displayName": "Special Node", "description": "Custom node", "category": "custom" }
+    ]
+  },
+  "stats": { "total": 4, "core": 2, "community": 1, "custom": 1 },
+  "source": "http://localhost:5678/api/v1",
+  "fetchedAt": "2026-01-01T00:00:00.000Z",
+  "timestamp": 1735689600000,
+  "version": "1.0.0"
+}

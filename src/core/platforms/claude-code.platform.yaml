@@ -1,0 +1,82 @@
+# Claude Code Platform Configuration
+# For Anthropic's official CLI tool
+
+platform:
+  id: claude-code
+  name: "Claude Code"
+  description: "Anthropic's official Claude CLI for coding"
+  vendor: anthropic
+
+# Configuration paths
+config:
+  commands_path: ".claude/commands/n8n"
+  mcp_config: ".mcp.json"
+  settings_path: ".claude/settings.json"
+
+# Slash command format
+commands:
+  format: markdown
+  prefix: "/n8n-"
+  extension: ".md"
+
+  # Generated command example
+  example: |
+    ---
+    description: Load the Developer agent for n8n workflow implementation
+    ---
+
+    # Developer Agent
+
+    You are Nate, the n8n-BMAD Developer agent...
+
+# MCP (Model Context Protocol) integration
+mcp:
+  enabled: true
+  server: n8n-mcp
+  transport: stdio
+
+  config_template: |
+    {
+      "mcpServers": {
+        "n8n": {
+          "command": "npx",
+          "args": ["-y", "n8n-mcp"],
+          "env": {
+            "MCP_MODE": "stdio",
+            "N8N_API_URL": "${N8N_API_URL}",
+            "N8N_API_KEY": "${N8N_API_KEY}"
+          }
+        }
+      }
+    }
+
+# Features supported
+features:
+  slash_commands: true
+  mcp_tools: true
+  file_editing: true
+  bash_commands: true
+  multi_file_edit: true
+  task_mode: true
+
+# Best practices
+best_practices:
+  - "Use CLAUDE.md for project-specific instructions"
+  - "Place MCP config at project root"
+  - "Generate slash commands during init"
+  - "Use mcp__n8n__* tools for n8n operations"
+
+# Setup steps
+setup:
+  steps:
+    - name: "Initialize project"
+      command: "n8n-bmad init --platform claude-code"
+
+    - name: "Verify MCP config"
+      check: ".mcp.json exists at project root"
+
+    - name: "Generate commands"
+      command: "n8n-bmad agent generate-commands"
+
+    - name: "Restart Claude Code"
+      note: "For MCP changes to take effect"

@@ -1,0 +1,46 @@
+workflows:
+  requirements:
+    - id: create-prd
+      trigger: PRD
+      description: "Create Product Requirements Document"
+      file: "1-requirements/create-prd.md"
+      primary_agent: pm
+      supporting_agents: [po]
+      next: [create-architecture]
+
+    - id: validate-prd
+      trigger: VP
+      description: "Validate PRD"
+      file: "1-requirements/validate-prd.md"
+      primary_agent: po
+
+  development:
+    - id: dev-story
+      trigger: DS
+      description: "Implement a story"
+      file: "3-development/dev-story.md"
+      primary_agent: developer
+      supporting_agents: [qa]
+      next: [code-review]
+
+  quality:
+    - id: code-review
+      trigger: CR
+      description: "Code review"
+      file: "4-quality/code-review.md"
+      primary_agent: qa
+
+paths:
+  quick:
+    name: "Quick Flow"
+    description: "Fast 1-5 story workflow"
+    steps: [PRD, DS, CR]
+    agents: [pm, developer, qa]
+  standard:
+    name: "Standard"
+    description: "Full process"
+    steps: [PRD, VP, DS, CR]
+    agents: [pm, po, developer, qa]
+
+routing:
+  default: n8n-master

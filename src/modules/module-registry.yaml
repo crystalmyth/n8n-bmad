@@ -1,0 +1,214 @@
+# n8n-BMAD Module Registry
+# Defines available modules and their capabilities
+
+registry:
+  version: "1.0.0"
+  description: "Central registry for n8n-BMAD modules"
+
+# Core Module (always included)
+modules:
+  core:
+    id: n8n-bmad-core
+    name: "n8n-BMAD Core"
+    description: "Core methodology framework for n8n workflow automation"
+    version: "2.0.0"
+    status: bundled
+    path: "./src/core"
+
+    agents:
+      count: 15
+      list:
+        - n8n-master
+        - developer
+        - architect
+        - pm
+        - po
+        - sm
+        - qa
+        - devops
+        - ba
+        - security
+        - integration
+        - data-analyst
+        - tech-writer
+        - prompt-engineer
+        - quick-flow
+
+    workflows:
+      count: 25
+      categories:
+        - quick-flow
+        - requirements
+        - planning
+        - development
+        - quality
+        - release
+        - cross-cutting
+
+    handlers:
+      count: 6
+      list:
+        - n8n-validate
+        - n8n-expression
+        - n8n-error
+        - n8n-credential
+        - ai-node-config
+        - webhook-config
+
+  # AI Workflows Module (planned)
+  ai-workflows:
+    id: n8n-bmad-ai
+    name: "AI Workflows Module"
+    description: "Advanced AI-powered workflow patterns for n8n"
+    version: "1.0.0"
+    status: planned
+    dependencies:
+      - n8n-bmad-core
+
+    agents:
+      count: 2
+      list:
+        - ai-orchestrator
+        - rag-specialist
+
+    patterns:
+      - ai-agent-loop
+      - rag-pipeline
+      - multi-model-chain
+      - tool-calling-pattern
+      - streaming-response
+      - semantic-router
+
+    workflows:
+      - design-ai-pipeline
+      - implement-rag
+      - configure-agent
+      - optimize-prompts
+      - evaluate-ai-output
+
+    n8n_nodes:
+      - AI Agent
+      - OpenAI Chat Model
+      - Anthropic Chat Model
+      - Vector Store nodes
+      - Embeddings nodes
+      - Memory nodes
+
+  # Enterprise Integration Module (planned)
+  enterprise-integration:
+    id: n8n-bmad-enterprise
+    name: "Enterprise Integration Module"
+    description: "Enterprise patterns for complex integrations"
+    version: "1.0.0"
+    status: planned
+    dependencies:
+      - n8n-bmad-core
+
+    patterns:
+      - saga-pattern
+      - circuit-breaker
+      - bulkhead
+      - retry-with-backoff
+      - dead-letter-queue
+      - idempotent-receiver
+      - event-sourcing
+
+    workflows:
+      - enterprise-audit
+      - sla-monitoring
+      - compliance-check
+      - multi-system-sync
+      - distributed-transaction
+
+    handlers:
+      - saga-orchestrator
+      - circuit-breaker-handler
+      - event-store-handler
+
+  # Data Pipeline Module (planned)
+  data-pipeline:
+    id: n8n-bmad-data
+    name: "Data Pipeline Module"
+    description: "ETL and data pipeline patterns for n8n"
+    version: "1.0.0"
+    status: planned
+    dependencies:
+      - n8n-bmad-core
+
+    agents:
+      count: 2
+      list:
+        - data-engineer
+        - data-quality
+
+    patterns:
+      - etl-standard
+      - incremental-sync
+      - cdc-pattern
+      - data-lake-ingestion
+      - batch-processing
+      - stream-processing
+
+    workflows:
+      - design-etl
+      - implement-pipeline
+      - data-quality-check
+      - schema-evolution
+      - data-lineage
+
+    handlers:
+      - data-validation
+      - schema-handler
+      - quality-rules
+
+  # Testing Module (planned)
+  testing:
+    id: n8n-bmad-testing
+    name: "Testing Module"
+    description: "Comprehensive testing patterns for n8n workflows"
+    version: "1.0.0"
+    status: planned
+    dependencies:
+      - n8n-bmad-core
+
+    patterns:
+      - unit-test-workflow
+      - integration-test
+      - e2e-test
+      - load-test
+      - chaos-test
+
+    workflows:
+      - create-test-suite
+      - run-regression
+      - performance-benchmark
+      - failure-injection
+
+# Module Installation
+installation:
+  command: "n8n-bmad module install {module-id}"
+  sources:
+    - npm
+    - github
+    - local
+
+# Module Development
+development:
+  template: "./templates/project/module.template.yaml"
+  guidelines: "./docs/module-development.md"
+  validation: "n8n-bmad module validate {path}"
+
+# Future Modules Roadmap
+roadmap:
+  q1_2026:
+    - ai-workflows
+    - data-pipeline
+
+  q2_2026:
+    - enterprise-integration
+    - testing
+
+  community:
+    - Accept module contributions
+    - Module marketplace
+    - Verified modules program

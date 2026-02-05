@@ -1,0 +1,361 @@
+# Workflow Manifest
+# Index of all available workflows and their routing
+
+version: "1.0.0"
+description: "n8n-BMAD workflow orchestration manifest"
+
+# Quick reference of all workflows
+workflows:
+
+  # ============================================
+  # QUICK FLOW - Minimal ceremony, fast delivery
+  # ============================================
+  quick-flow:
+    - id: dev-story
+      trigger: "DS"
+      file: "quick-flow/dev-story.workflow.md"
+      primary_agent: quick-flow  # Barry (orchestrator)
+      supporting_agents: [developer]  # Nate (implementer)
+      description: "Implement story end-to-end with auto-save"
+      inputs: ["story requirements", "quick-brief.md (optional)"]
+      outputs: ["implemented workflow", "updated quick-brief.md"]
+      next: ["code-review"]
+      persistence:
+        file: "./docs/quick-brief.md"
+        auto_save: true
+        save_on: ["subtask_complete", "status_change"]
+
+    - id: code-review
+      trigger: "CR"
+      file: "quick-flow/code-review.workflow.md"
+      primary_agent: qa  # Quinn (reviewer)
+      supporting_agents: [quick-flow]  # Barry (coordinator)
+      description: "Quality review with verdict persistence"
+      inputs: ["workflow", "quick-brief.md (optional)"]
+      outputs: ["review verdict", "updated quick-brief.md"]
+      next: ["deploy-workflow"]
+      persistence:
+        file: "./docs/quick-brief.md"
+        updates: ["review_status", "story_status", "next_session"]
+
+    - id: save-brief
+      trigger: "SB"
+      file: "quick-flow/save-brief.workflow.md"
+      primary_agent: quick-flow  # Barry
+      description: "Save Quick Flow state to quick-brief.md"
+      inputs: ["current session state"]
+      outputs: ["updated quick-brief.md"]
+      persistence:
+        file: "./docs/quick-brief.md"
+        template: "templates/quick-flow/quick-brief.template.md"
+
+    - id: load-brief
+      trigger: "LB"
+      file: "quick-flow/load-brief.workflow.md"
+      primary_agent: quick-flow  # Barry
+      description: "Resume Quick Flow from quick-brief.md"
+      inputs: ["none (reads from file)"]
+      outputs: ["loaded context", "recommended next action"]
+      persistence:
+        file: "./docs/quick-brief.md"
+        fallback: "RC (Resume Context for full process)"
+
+  # ============================================
+  # PHASE 1: REQUIREMENTS
+  # ============================================
+  requirements:
+    - id: prd
+      trigger: "PRD"
+      file: "1-requirements/prd.workflow.md"
+      primary_agent: pm  # Paula
+      supporting_agents: [quick-flow, ba]  # Barry, Mary
+      description: "Create PRD - auto-scales based on complexity"
+      outputs: ["PRD file", "stories"]
+      next: ["create-architecture", "dev-story"]
+      auto_scales: true
+      complexity_thresholds:
+        stories: 5
+        integrations: 3
+        stakeholders: 2
+
+    - id: validate-prd
+      trigger: "VP"
+      file: "1-requirements/validate-prd.workflow.md"
+      primary_agent: po  # Victor (validates what PM creates)
+      description: "Validate PRD for business value and completeness"
+      inputs: ["PRD file"]
+      outputs: ["validation report"]
+
+    - id: create-epic
+      trigger: "CE"
+      file: "1-requirements/create-epic.workflow.md"
+      primary_agent: pm  # Paula (creates, PO validates)
+      supporting_agents: [po]  # Victor validates
+      description: "Create epic for 15+ stories"
+      inputs: ["PRD file"]
+      outputs: ["epic file"]
+      next: ["validate-epic"]
+
+    - id: validate-epic
+      trigger: "VE"
+      file: "1-requirements/validate-epic.workflow.md"
+      primary_agent: po  # Victor (validates what PM creates)
+      description: "Validate epic scope and value alignment"
+      inputs: ["epic file"]
+      outputs: ["validation report"]
+      next: ["story-draft"]
+
+    - id: story-draft
+      trigger: "SD"
+      file: "1-requirements/story-draft.workflow.md"
+      primary_agent: sm  # Sam
+      supporting_agents: [po]  # Victor validates
+      description: "Draft story after reviewing PRD/epic/stories"
+      inputs: ["PRD", "epic (optional)", "existing stories"]
+      outputs: ["draft story file"]
+      next: ["validate-story"]
+      context_review:
+        - prd
+        - epic
+        - existing_stories
+
+    - id: create-story
+      trigger: "CS"
+      file: "1-requirements/create-story.workflow.md"
+      primary_agent: po  # Victor
+      description: "Quick create story (skip context review)"
+      inputs: ["epic file (optional)"]
+      outputs: ["story file"]
+      next: ["validate-story"]
+
+    - id: validate-story
+      trigger: "VS"
+      file: "1-requirements/validate-story.workflow.md"
+      primary_agent: po  # Victor
+      description: "Check Definition of Ready"
+      inputs: ["story file"]
+      outputs: ["validation result"]
+
+  # ============================================
+  # PHASE 2: PLANNING
+  # ============================================
+  planning:
+    - id: create-architecture
+      trigger: "CA"
+      file: "2-planning/create-architecture.workflow.md"
+      primary_agent: architect  # Winston
+      description: "Design workflow architecture"
+      inputs: ["requirements"]
+      outputs: ["architecture document", "ADRs"]
+      next: ["implementation-readiness"]
+
+    - id: implementation-readiness
+      trigger: "IR"
+      file: "2-planning/implementation-readiness.workflow.md"
+      primary_agent: architect  # Winston
+      description: "Verify ready for development"
+      inputs: ["PRD", "architecture", "stories"]
+      outputs: ["readiness checklist"]
+
+  # ============================================
+  # PHASE 3: DEVELOPMENT
+  # ============================================
+  development:
+    - id: new-workflow
+      trigger: "NW"
+      file: "3-development/new-workflow.workflow.md"
+      primary_agent: developer  # Nate
+      description: "Start new workflow implementation"
+      inputs: ["story file"]
+      outputs: ["workflow"]
+
+    - id: create-ai-workflow
+      trigger: "AA"
+      file: "3-development/create-ai-workflow.workflow.md"
+      primary_agent: prompt-engineer  # Petra
+      supporting_agents: [developer]  # Nate
+      description: "Build AI-powered workflow"
+      inputs: ["AI requirements"]
+      outputs: ["AI workflow with prompts"]
+
+    - id: integration-spec
+      trigger: "IS"
+      file: "3-development/integration-spec.workflow.md"
+      primary_agent: integration  # Ivy
+      description: "Design integration specification"
+      inputs: ["API requirements"]
+      outputs: ["integration spec"]
+
+    - id: develop-story
+      trigger: "DV"
+      file: "3-development/develop-story.workflow.md"
+      primary_agent: developer  # Nate
+      description: "Developer-centric story implementation"
+      inputs: ["story file"]
+      outputs: ["implemented workflow", "updated story file"]
+      next: ["review"]
+      chain: "DV → RV → (RQ → RV)* → DW"
+
+    - id: review-qa
+      trigger: "RQ"
+      file: "3-development/review-qa.workflow.md"
+      primary_agent: developer  # Nate
+      description: "Fix issues from QA code review"
+      inputs: ["review feedback"]
+      outputs: ["fixed workflow", "updated story file"]
+      next: ["review"]
+      chain: "DV → RV → RQ → RV"
+
+    - id: review
+      trigger: "RV"
+      file: "quick-flow/code-review.workflow.md"  # Reuses existing CR workflow
+      primary_agent: qa  # Quinn
+      description: "Code review for developer workflow chain (alias for CR)"
+      inputs: ["workflow"]
+      outputs: ["review verdict"]
+      next: ["deploy-workflow", "review-qa"]
+      chain: "DV → RV → DW (or RQ if needs changes)"
+
+  # ============================================
+  # PHASE 4: QUALITY
+  # ============================================
+  quality:
+    - id: create-test-plan
+      trigger: "TP"
+      file: "4-quality/create-test-plan.workflow.md"
+      primary_agent: qa  # Quinn
+      description: "Create comprehensive test plan"
+      inputs: ["workflow", "requirements"]
+      outputs: ["test plan"]
+
+    - id: security-review
+      trigger: "SR"
+      file: "4-quality/security-review.workflow.md"
+      primary_agent: security  # Sierra
+      description: "Security audit of workflow"
+      inputs: ["workflow"]
+      outputs: ["security report"]
+
+  # ============================================
+  # PHASE 5: RELEASE
+  # ============================================
+  release:
+    - id: deploy-workflow
+      trigger: "DW"
+      file: "5-release/deploy-workflow.workflow.md"
+      primary_agent: devops  # Rex
+      supporting_agents: [security]  # Sierra
+      description: "Deploy to environment"
+      inputs: ["approved workflow"]
+      outputs: ["deployed workflow"]
+
+    - id: rollback
+      trigger: "RB"
+      file: "5-release/rollback.workflow.md"
+      primary_agent: devops  # Rex
+      description: "Rollback deployment"
+      inputs: ["workflow to rollback"]
+      outputs: ["restored previous version"]
+
+  # ============================================
+  # CROSS-CUTTING
+  # ============================================
+  cross-cutting:
+    - id: correct-course
+      trigger: "CC"
+      file: "cross-cutting/correct-course.workflow.md"
+      primary_agent: n8n-master  # Atlas
+      description: "Handle mid-project changes"
+      routing:
+        prd_change: po
+        epic_change: po
+        story_change: po
+        architecture_change: architect
+
+    - id: smart-help
+      trigger: "HP"
+      file: "cross-cutting/smart-help.workflow.md"
+      primary_agent: n8n-master  # Atlas
+      description: "AI-powered contextual help and guidance"
+      natural_language_triggers:
+        - "help"
+        - "where do I start"
+        - "what's next"
+        - "I'm stuck"
+        - "how do I"
+
+# Routing rules for multi-agent workflows
+routing:
+  # When user doesn't know which agent to use
+  general:
+    keywords: ["help", "start", "begin", "how"]
+    route_to: n8n-master
+
+  # Keyword-based routing
+  requirements:
+    keywords: ["requirement", "PRD", "story", "epic", "backlog"]
+    route_to: po
+
+  planning:
+    keywords: ["epic", "plan", "schedule", "capacity"]
+    route_to: pm
+
+  architecture:
+    keywords: ["design", "pattern", "architecture", "ADR"]
+    route_to: architect
+
+  development:
+    keywords: ["implement", "build", "code", "workflow", "node"]
+    route_to: developer
+
+  ai:
+    keywords: ["AI", "prompt", "LLM", "GPT", "Claude", "agent"]
+    route_to: prompt-engineer
+
+  testing:
+    keywords: ["test", "QA", "bug", "quality"]
+    route_to: qa
+
+  security:
+    keywords: ["security", "credential", "auth", "compliance"]
+    route_to: security
+
+  deployment:
+    keywords: ["deploy", "release", "rollback", "environment"]
+    route_to: devops
+
+# Common workflow paths
+paths:
+  quick_flow:
+    name: "Quick Flow"
+    description: "Fast implementation for simple tasks (1-5 stories)"
+    steps: ["PRD", "CA", "DS", "CR", "DW"]
+    agents: [pm, architect, quick-flow, qa, devops]
+
+  standard:
+    name: "Standard Process"
+    description: "Balanced process for typical projects (6-15 stories)"
+    steps: ["PRD", "VP", "CA", "CE", "VE", "SD", "VS", "DS", "CR", "DW"]
+    agents: [pm, po, architect, sm, quick-flow, qa, devops]
+    validation_pattern: "PM creates → PO validates"
+
+  full_process:
+    name: "Full Process"
+    description: "Complete methodology for complex projects (15+ stories)"
+    steps: ["PRD", "VP", "CA", "CE", "VE", "SD", "VS", "DS", "CR", "SR", "DW"]
+    agents: [pm, po, architect, sm, quick-flow, qa, security, devops]
+    validation_pattern: "PM creates → PO validates"
+
+  ai_workflow:
+    name: "AI Workflow"
+    description: "Build AI-powered automation"
+    steps: ["PRD", "CA", "AA", "CR", "DW"]
+    agents: [pm, architect, prompt-engineer, qa, devops]
+
+  developer_centric:
+    name: "Developer-Centric"
+    description: "Solo developer flow with direct control (no Quick Flow orchestration)"
+    steps: ["PRD", "CA", "DV", "RV", "DW"]
+    agents: [pm, architect, developer, qa, devops]
+    fix_loop: ["RQ", "RV"]
+    note: "Use DV instead of DS for solo dev work without quick-brief.md persistence"

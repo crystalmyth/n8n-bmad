@@ -98,6 +98,12 @@ function displayAgentDetails(agent) {
 }
 
 /**
+ * Essential agents shown by default with --essential flag
+ * These are the core agents most users need to get started
+ */
+const ESSENTIAL_AGENTS = ['n8n-master', 'quick-flow', 'developer', 'architect', 'po'];
+
+/**
  * Create the agent list subcommand
  * @returns {Command} List subcommand
  */
@@ -108,6 +114,8 @@ function createListCommand() {
     .description('List all available agents')
     .option('-f, --format <format>', 'Output format (table, json, simple)', 'table')
     .option('--filter <keyword>', 'Filter agents by keyword')
+    .option('-e, --essential', 'Show only essential agents (recommended for beginners)')
+    .option('-a, --all', 'Show all agents (default)')
     .action(async (options) => {
       const globalOptions = cmd.parent?.parent?._globalOptions || {};
 
@@ -120,7 +128,14 @@ function createListCommand() {
           spinner.succeed(`Found ${agents.length} matching agents`);
         } else {
           agents = await listAgents();
-          spinner.succeed(`Loaded ${agents.length} agents`);
+
+          // Filter to essential agents if --essential flag is set
+          if (options.essential) {
+            agents = agents.filter(a => ESSENTIAL_AGENTS.includes(a.id));
+            spinner.succeed(`Loaded ${agents.length} essential agents`);
+          } else {
+            spinner.succeed(`Loaded ${agents.length} agents`);
+          }
         }
 
         if (agents.length === 0) {
@@ -142,10 +157,19 @@ function createListCommand() {
 
           case 'table':
           default:
-            displayHeader('Available Agents');
+            displayHeader(options.essential ? 'Essential Agents' : 'Available Agents');
             console.log(displayTable(formatAgentTable(agents)));
 
             displayInfo(`Use "n8n-bmad agent load <id>" to load an agent`);
+
+            // Show hint about --essential or --all
+            if (options.essential) {
+              console.log();
+              displayInfo(`Use "n8n-bmad agent list" to see all ${(await listAgents()).length} agents`);
+            } else if (!options.filter) {
+              console.log();
+              displayInfo(`Tip: Use "n8n-bmad agent list --essential" for beginners`);
+            }
             break;
         }
 
@@ -352,6 +376,191 @@ function createRouteCommand() {
 }
 
 /**
+ * Create the agent create subcommand
+ * @returns {Command} Create subcommand
+ */
+function createCreateCommand() {
+  const cmd = new Command('create');
+
+  cmd
+    .description('Create a custom agent from a base agent')
+    .option('-b, --base <agent>', 'Base agent to extend (e.g., developer, architect)', 'developer')
+    .option('-n, --name <name>', 'Name for the new agent')
+    .option('-t, --title <title>', 'Title/role for the new agent')
+    .option('-o, --output <path>', 'Output path for the agent file')
+    .action(async (options) => {
+      const globalOptions = cmd.parent?.parent?._globalOptions || {};
+
+      try {
+        // If not all options provided, use interactive prompts
+        if (!options.name) {
+          const answers = await inquirer.prompt([
+            {
+              type: 'list',
+              name: 'base',
+              message: 'Select base agent to extend:',
+              choices: [
+                { name: 'Developer - Workflow implementation', value: 'developer' },
+                { name: 'Architect - Design and patterns', value: 'architect' },
+                { name: 'Integration - API and webhooks', value: 'integration' },
+                { name: 'Data Analyst - Data transformation', value: 'data-analyst' },
+                { name: 'QA - Testing and quality', value: 'qa' },
+                { name: 'Security - Security review', value: 'security' },
+                { name: 'DevOps - Deployment', value: 'devops' },
+                { name: 'Prompt Engineer - AI workflows', value: 'prompt-engineer' },
+              ],
+              default: options.base,
+            },
+            {
+              type: 'input',
+              name: 'name',
+              message: 'Agent display name (e.g., "Edgar"):',
+              validate: (input) => input.length > 0 || 'Name is required',
+            },
+            {
+              type: 'input',
+              name: 'title',
+              message: 'Agent title/role (e.g., "ETL Specialist"):',
+              validate: (input) => input.length > 0 || 'Title is required',
+            },
+            {
+              type: 'input',
+              name: 'specialization',
+              message: 'Specialization description:',
+              default: 'Specialized in...',
+            },
+            {
+              type: 'input',
+              name: 'nodes',
+              message: 'Specialized n8n nodes (comma-separated):',
+              default: '',
+            },
+            {
+              type: 'input',
+              name: 'domains',
+              message: 'Domain expertise (comma-separated):',
+              default: '',
+            },
+          ]);
+
+          options = { ...options, ...answers };
+        }
+
+        const spinner = ora('Creating custom agent...').start();
+
+        // Generate agent ID from title
+        const agentId = options.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '');
+
+        // Build agent YAML content
+        const agentContent = `# Custom Agent: ${options.title}
+# Extends: ${options.base}
+# Created: ${new Date().toISOString()}
+
+agent:
+  metadata:
+    id: ${agentId}
+    name: ${options.name}
+    title: ${options.title}
+    icon: 🔧
+    version: "1.0.0"
+    extends: ${options.base}
+
+  persona:
+    role: "${options.title} + ${options.base.charAt(0).toUpperCase() + options.base.slice(1)} Expert"
+    identity: |
+      I am ${options.name}, a specialized ${options.title}.
+      ${options.specialization || 'I bring deep expertise to my domain.'}
+
+      Building on my foundation as a ${options.base}, I focus on:
+      ${options.domains ? options.domains.split(',').map(d => `- ${d.trim()}`).join('\n      ') : '- My specialized domain'}
+
+    communication_style: |
+      Technical and focused on my specialization.
+      I leverage my ${options.base} background while bringing specialized knowledge.
+
+    principles: |
+      - Apply specialized expertise to every task
+      - Maintain ${options.base} best practices
+      - Collaborate with other specialists when needed
+      - Document specialized patterns and decisions
+
+  n8n_expertise:
+    specialized_nodes:
+${options.nodes ? options.nodes.split(',').map(n => `      - ${n.trim()}`).join('\n') : '      - # Add your specialized nodes'}
+
+    domains:
+${options.domains ? options.domains.split(',').map(d => `      - ${d.trim()}`).join('\n') : '      - # Add your domains'}
+
+# Custom commands for this specialization
+menu:
+  sections:
+    - name: "${options.title} Commands"
+      commands:
+        - trigger: "XX"
+          action: "specialized-action"
+          description: "Your specialized action"
+
+# Collaboration
+collaborates_with:
+  - agent: ${options.base}
+    for: "Core ${options.base} tasks"
+
+prompts:
+  introduction: |
+    👋 I'm ${options.name}, your ${options.title}.
+
+    I specialize in:
+    ${options.domains ? options.domains.split(',').map(d => `- ${d.trim()}`).join('\n    ') : '- My specialized area'}
+
+    How can I help you today?
+`;
+
+        // Determine output path
+        const fs = require('fs').promises;
+        const path = require('path');
+        const outputPath = options.output ||
+          path.join(process.cwd(), '.n8n-bmad', 'src', 'core', 'agents', `${agentId}.agent.yaml`) ||
+          path.join(process.cwd(), 'src', 'core', 'agents', `${agentId}.agent.yaml`);
+
+        // Ensure directory exists
+        await fs.mkdir(path.dirname(outputPath), { recursive: true });
+
+        // Write the file
+        await fs.writeFile(outputPath, agentContent, 'utf8');
+
+        spinner.succeed(`Custom agent created: ${options.name} (${agentId})`);
+
+        console.log();
+        displayBox([
+          `Agent: ${options.name}`,
+          `ID: ${agentId}`,
+          `Extends: ${options.base}`,
+          `File: ${outputPath}`,
+          '',
+          'Next steps:',
+          '1. Edit the file to add specialized commands',
+          '2. Define your specialized n8n nodes',
+          '3. Add custom prompts for your domain',
+          '',
+          `Load with: n8n-bmad agent load ${agentId}`,
+        ], { title: 'Custom Agent Created', style: 'round' });
+
+      } catch (error) {
+        displayError(`Failed to create agent: ${error.message}`);
+        if (globalOptions.verbose) {
+          console.error(error.stack);
+        }
+        process.exit(1);
+      }
+    });
+
+  return cmd;
+}
+
+/**
  * Create the agent info subcommand
  * @returns {Command} Info subcommand
  */
@@ -406,13 +615,15 @@ function createAgentCommand() {
     .description('Agent operations - manage and interact with agent personas')
     .addHelpText('after', `
 ${chalk.bold('Examples:')}
-  ${chalk.cyan('n8n-bmad agent list')}                List all available agents
-  ${chalk.cyan('n8n-bmad agent list --filter api')}   Filter agents by keyword
-  ${chalk.cyan('n8n-bmad agent load developer')}      Load the developer agent
-  ${chalk.cyan('n8n-bmad agent menu')}                Show master agent menu
-  ${chalk.cyan('n8n-bmad agent menu developer -i')}   Interactive developer menu
-  ${chalk.cyan('n8n-bmad agent route "build webhook"')} Find best agent for task
-  ${chalk.cyan('n8n-bmad agent info architect')}      Show architect agent details
+  ${chalk.cyan('n8n-bmad agent list')}                    List all available agents
+  ${chalk.cyan('n8n-bmad agent list --filter api')}       Filter agents by keyword
+  ${chalk.cyan('n8n-bmad agent load developer')}          Load the developer agent
+  ${chalk.cyan('n8n-bmad agent menu')}                    Show master agent menu
+  ${chalk.cyan('n8n-bmad agent menu developer -i')}       Interactive developer menu
+  ${chalk.cyan('n8n-bmad agent route "build webhook"')}   Find best agent for task
+  ${chalk.cyan('n8n-bmad agent info architect')}          Show architect agent details
+  ${chalk.cyan('n8n-bmad agent create')}                  Create custom agent (interactive)
+  ${chalk.cyan('n8n-bmad agent create -b developer -n "Edgar" -t "ETL Specialist"')}
 `);
 
   // Add subcommands
@@ -421,6 +632,7 @@ ${chalk.bold('Examples:')}
   command.addCommand(createMenuCommand());
   command.addCommand(createRouteCommand());
   command.addCommand(createInfoCommand());
+  command.addCommand(createCreateCommand());
 
   // Default action when no subcommand
   command.action(async () => {

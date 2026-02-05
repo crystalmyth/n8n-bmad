@@ -12,10 +12,17 @@ category: agile
 |-------|-------|
 | **Epic ID** | {epic_id} |
 | **Owner** | {owner} |
-| **Status** | Backlog / In Progress / Done |
+| **Status** | 📝 Draft |
 | **Priority** | {priority} |
 | **Created** | {date} |
 | **Target Release** | {release} |
+
+<!-- Status Lifecycle:
+  📝 Draft     → Epic created (PM *create-epic)
+  ✅ Approved  → Validated by PO (PO *validate-epic)
+  🔄 In Progress → Stories being implemented
+  ✅ Done      → All stories complete
+-->
 
 ---
 
@@ -55,13 +62,19 @@ category: agile
 
 ## User Stories
 
-| ID | Title | Priority | Points | Status |
-|----|-------|----------|--------|--------|
-| {story_id} | {title} | {P1/P2/P3} | {points} | {status} |
+<!--
+Stories listed in DEPENDENCY ORDER (topological sort).
+"Depends On" references only earlier # numbers. Use "-" for no dependencies.
+-->
+
+| # | ID | Title | Depends On | Priority | Points | Status |
+|---|-----|-------|------------|----------|--------|--------|
+| 1 | story-{epic_num}.1-{slug} | {title} | - | {P1/P2/P3} | {points} | {status} |
+| 2 | story-{epic_num}.2-{slug} | {title} | #1 | {P1/P2/P3} | {points} | {status} |
 
 ### Story Details
 
-#### {story_id}: {story_title}
+#### story-{epic_num}.1-{slug}: {story_title}
 ```
 As a {user_type}
 I want to {action}

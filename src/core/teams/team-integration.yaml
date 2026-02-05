@@ -1,0 +1,43 @@
+# Integration Specialist Team
+# Focused team for API and integration projects
+
+bundle:
+  name: Integration Team
+  icon: 🔌
+  description: |
+    Specialized team for API integrations, webhook implementations,
+    and complex data transformation projects.
+
+agents:
+  - integration   # Ivy - API and webhook expertise
+  - developer     # Nate - Implementation
+  - data-analyst  # Dana - Data transformation
+  - security      # Sierra - API security review
+  - architect     # Winston - Integration architecture
+
+# Recommended workflow
+workflow:
+  api_integration:
+    - "integration: AA (Analyze API) → IS (Integration Spec)"
+    - "architect: CA (Create Architecture)"
+    - "data-analyst: DM (Data Mapping) → DT (Design Transform)"
+    - "developer: NW (New Workflow)"
+    - "security: SR (Security Review)"
+
+  webhook_implementation:
+    - "integration: WD (Document Webhook) → WC (Webhook Config)"
+    - "developer: NW (New Workflow)"
+    - "security: WS (Webhook Security)"
+
+  data_pipeline:
+    - "data-analyst: CM (Create Model) → TF (Transform Flow)"
+    - "developer: NW (New Workflow)"
+    - "data-analyst: QR (Quality Rules)"
+
+# When to use this team
+use_cases:
+  - "Third-party API integrations"
+  - "Webhook receiver implementations"
+  - "Complex data transformations"
+  - "Multi-system data flows"
+  - "ETL workflows"

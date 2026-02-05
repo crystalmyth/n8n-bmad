@@ -155,7 +155,7 @@ Examples:
 
 ## Getting Help
 
-- Open a [Discussion](https://github.com/your-org/n8n-bmad/discussions)
+- Open a [Discussion](https://github.com/crystalmyth/n8n-bmad/discussions)
 - Review existing documentation
 - Check closed issues for solutions
 

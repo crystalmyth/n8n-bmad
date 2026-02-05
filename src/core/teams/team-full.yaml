@@ -1,0 +1,67 @@
+# Full n8n-BMAD Team
+# Complete team for complex projects with full methodology
+
+bundle:
+  name: n8n Full Team
+  icon: 🏢
+  description: |
+    Complete team for complex n8n projects requiring full BMAD methodology.
+    Includes all agent personas for comprehensive project coverage.
+
+agents:
+  # Orchestration
+  - n8n-master    # Atlas - Master orchestrator
+
+  # Requirements & Planning
+  - po            # Victor - Product ownership
+  - pm            # Paula - Project management
+  - sm            # Sam - Scrum facilitation
+  - ba            # Mary - Business analysis
+
+  # Development
+  - architect        # Winston - Architecture
+  - developer        # Nate - Implementation
+  - prompt-engineer  # Petra - AI prompts
+  - integration      # Ivy - API integration
+  - data-analyst     # Dana - Data transformation
+
+  # Quality & Operations
+  - qa            # Quinn - Quality assurance
+  - security      # Sierra - Security review
+  - devops        # Rex - Deployment
+
+  # Documentation
+  - tech-writer   # Tara - Documentation
+
+# Recommended workflow
+workflow:
+  full_process:
+    phase_1_requirements:
+      - "ba: BP (Brainstorm) → PA (Process Analysis)"
+      - "po: CP (Create PRD) → CE (Create Epic) → CS (Create Story)"
+
+    phase_2_planning:
+      - "architect: CA (Create Architecture) → IR (Implementation Readiness)"
+      - "pm: CE (Create Epic)"
+
+    phase_3_development:
+      - "developer: NW (New Workflow) → UP (Update Progress)"
+      - "integration: IS (Integration Spec)"
+      - "data-analyst: DT (Design Transform)"
+
+    phase_4_quality:
+      - "qa: TP (Test Plan) → RT (Run Tests)"
+      - "security: SR (Security Review)"
+
+    phase_5_release:
+      - "devops: DW (Deploy) → MO (Metrics)"
+      - "tech-writer: WF (Workflow Docs)"
+      - "sm: RT (Retrospective)"
+
+# When to use this team
+use_cases:
+  - "New product/feature development"
+  - "Complex multi-epic projects"
+  - "Team coordination required"
+  - "Compliance-sensitive projects"
+  - "Enterprise deployments"

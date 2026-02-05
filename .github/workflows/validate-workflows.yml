@@ -85,7 +85,7 @@ jobs:
         run: npm ci
 
       - name: Run ESLint
-        run: npm run lint || true
+        run: npm run lint
 
   test:
     runs-on: ubuntu-latest
@@ -104,7 +104,7 @@ jobs:
         run: npm ci
 
       - name: Run tests
-        run: npm test || true
+        run: npm test
 
       - name: Upload coverage
         uses: codecov/codecov-action@v3

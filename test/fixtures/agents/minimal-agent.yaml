@@ -1,0 +1,4 @@
+agent:
+  id: minimal
+  name: Minimal
+  role: Test Agent

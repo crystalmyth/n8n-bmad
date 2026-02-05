@@ -9,13 +9,38 @@
 
 n8n-BMAD brings structured AI-assisted development methodology to workflow automation. Inspired by the [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD), this framework provides:
 
-- **13 Specialized AI Agent Personas** - From Product Owner to DevOps Engineer
-- **Reusable Workflow Patterns** - Error handling, integrations, data transformation
-- **Comprehensive Templates** - PRDs, ADRs, runbooks, test plans, and more
+- **15 Specialized AI Agent Personas** - From Product Owner to DevOps Engineer, plus Quick Flow and Prompt Engineer
+- **Scale-Adaptive Intelligence** - Auto-adjusts ceremony based on project complexity
+- **Agent + Skill Invocation** - Self-documenting `/n8n:agent *skill` syntax
+- **25+ Workflow Definitions** - Multi-agent orchestration across the full SDLC
+- **7 Handler Components** - Reusable patterns for validation, expressions, errors
+- **37 Document Templates** - PRDs, ADRs, runbooks, test plans, and more
+- **Party Mode** - Multi-agent collaboration for complex decisions
+- **Quick Flow** - Lightweight solo-developer workflow with session persistence
 - **Full CLI Tooling** - Initialize, validate, and manage your n8n projects
 - **MCP Integration** - Connect AI assistants directly to your n8n instance
+- **Node Discovery** - Discover custom nodes installed on your n8n instance
 
 ## Quick Start
+
+> **New here?** See [QUICKSTART.md](./QUICKSTART.md) for a 5-minute guide.
+
+### Essential Workflow (The Only 5 Commands You Need)
+
+| Skill | What It Does | When to Use |
+|-------|--------------|-------------|
+| `*create-prd` | Create PRD | Start any project (auto-scales) |
+| `*create-architecture` | Create Architecture | After requirements |
+| `*create-story` | Create Story | Break work into tasks |
+| `*dev-story` | Dev Story | Implement a story |
+| `*code-review` | Code Review | Before shipping |
+
+**The Flow:** `/n8n:pm *create-prd` → `/n8n:arch *create-architecture` → `/n8n:po *create-story` → `/n8n:dev *dev-story` → `/n8n:qa *code-review`
+
+```bash
+# Start a project
+/n8n:pm *create-prd
+```
 
 ### Installation
 
@@ -34,8 +59,10 @@ npx n8n-bmad init
 n8n-bmad init
 
 # Or with options
-n8n-bmad init --name "my-automation-project" --url "http://localhost:5678"
+n8n-bmad init --name "my-automation-project" --url "http://localhost:5678/api/v1"
 ```
+
+The setup will prompt for your n8n API key and create the project structure in `.n8n-bmad/`.
 
 ### Use an Agent
 
@@ -75,6 +102,29 @@ n8n-bmad validate naming ./workflows/
 
 ## Project Structure
 
+When you initialize a project with `n8n-bmad init`, the following structure is created:
+
+```
+my-project/
+├── .mcp.json                    # MCP config (project root)
+├── .claude/commands/n8n/        # Claude Code slash commands
+│   ├── master.md
+│   ├── dev.md
+│   └── ...
+└── .n8n-bmad/                   # Framework files
+    ├── src/core/
+    │   ├── agents/              # AI agent persona definitions
+    │   └── module.yaml          # Framework configuration
+    ├── templates/               # Document templates
+    ├── patterns/                # Reusable workflow patterns
+    ├── reference/               # Technical reference docs
+    └── .env                     # Environment variables
+```
+
+### Framework Source Structure
+
+The n8n-BMAD package itself contains:
+
 ```
 n8n-bmad/
 ├── src/core/
@@ -83,7 +133,7 @@ n8n-bmad/
 │   └── tasks/           # Task definitions (XML)
 ├── templates/           # Document templates
 │   ├── project/         # PRD, charter, brief
-│   ├── agile/           # Epics, stories, sprints
+│   ├── agile/           # Epics, stories, retrospectives
 │   ├── architecture/    # ADRs, solution designs
 │   ├── operations/      # Runbooks, incident reports
 │   ├── testing/         # Test plans, test cases
@@ -112,7 +162,7 @@ n8n-bmad/
 |-------|------|-------------------|
 | **n8n-master** | Orchestrator | Help system, agent routing |
 | **po** | Product Owner | Requirements, backlog, acceptance criteria |
-| **pm** | Project Manager | Sprint planning, releases, status |
+| **pm** | Project Manager | Epic planning, releases, status |
 | **sm** | Scrum Master | Ceremonies, impediments, coaching |
 | **architect** | Solution Architect | Design patterns, ADRs, technical decisions |
 | **developer** | Workflow Developer | Implementation, expressions, error handling |
@@ -123,6 +173,38 @@ n8n-bmad/
 | **integration** | Integration Specialist | APIs, webhooks, third-party |
 | **data-analyst** | Data Analyst | Data modeling, transformation |
 | **tech-writer** | Technical Writer | Documentation, runbooks |
+| **prompt-engineer** | Prompt Engineer | AI/LLM workflow design |
+| **quick-flow** | Quick Flow Solo Dev | Lightweight implementation |
+
+## Claude Code Integration
+
+When you initialize a project, slash commands are automatically generated for Claude Code in `.claude/commands/n8n/`. These commands provide quick access to each agent persona.
+
+### Available Slash Commands
+
+| Command | Agent | Description |
+|---------|-------|-------------|
+| `/n8n-master` | n8n-master | Help system, agent routing |
+| `/n8n-dev` | developer | Workflow implementation |
+| `/n8n-architect` | architect | Solution design, ADRs |
+| `/n8n-po` | po | Requirements, backlog |
+| `/n8n-pm` | pm | Epic planning, releases |
+| `/n8n-qa` | qa | Test planning, execution |
+| `/n8n-devops` | devops | Pipelines, incidents |
+| `/n8n-ba` | ba | Process mapping, ROI |
+| `/n8n-security` | security | Reviews, compliance |
+| `/n8n-integration` | integration | APIs, webhooks |
+| `/n8n-data` | data-analyst | Data modeling |
+| `/n8n-docs` | tech-writer | Documentation |
+
+### Command Alias Mapping
+
+Commands are auto-generated from agent YAML definitions. The mapping uses these conventions:
+
+- `developer` → `dev`
+- `data-analyst` → `data`
+- `tech-writer` → `docs`
+- Other agents use their YAML filename directly
 
 ## Workflow Patterns
 
@@ -148,30 +230,39 @@ Ready-to-use n8n workflow patterns:
 
 ## MCP Integration
 
-Connect AI assistants (Claude, etc.) directly to your n8n instance:
+Connect AI assistants (Claude, etc.) directly to your n8n instance. The `n8n-bmad init` command automatically creates a `.mcp.json` file in your project root:
 
-```bash
-# Setup MCP configuration
-n8n-bmad init --mcp
-
-# Configure in your MCP client
+```json
 {
-  "servers": {
-    "n8n-bmad": {
-      "command": "n8n-bmad",
-      "args": ["mcp-server"]
+  "mcpServers": {
+    "n8n": {
+      "command": "npx",
+      "args": ["-y", "n8n-mcp"],
+      "env": {
+        "MCP_MODE": "stdio",
+        "N8N_API_URL": "http://localhost:5678/api/v1",
+        "N8N_API_KEY": "your-api-key"
+      }
     }
   }
 }
 ```
 
+### Required Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `MCP_MODE` | Set to `stdio` for CLI integration |
+| `N8N_API_URL` | Your n8n instance URL with `/api/v1` suffix |
+| `N8N_API_KEY` | API key from n8n Settings → API |
+
 ## Configuration
 
-Create `n8n-bmad.config.yaml` in your project root:
+Framework configuration is stored in `.n8n-bmad/src/core/module.yaml`:
 
 ```yaml
 n8n:
-  instance_url: http://localhost:5678
+  instance_url: http://localhost:5678/api/v1
   api_key: ${N8N_API_KEY}
 
 naming:
@@ -182,6 +273,8 @@ output:
   docs_path: ./docs
   exports_path: ./exports
 ```
+
+Environment variables (like `N8N_API_KEY`) are stored in `.n8n-bmad/.env`.
 
 ## Contributing
 

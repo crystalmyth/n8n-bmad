@@ -12,6 +12,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const yaml = require('js-yaml');
 const ora = require('ora');
+const chalk = require('chalk');
 
 const {
   displayError,
@@ -21,6 +22,8 @@ const {
   displayList,
   displayBox,
 } = require('../lib/display');
+
+const { generateClaudeCommands } = require('../lib/command-generator');
 
 /**
  * Default project configuration
@@ -36,7 +39,7 @@ const DEFAULT_PROJECT_CONFIG = {
     n8n_instance_url: {
       type: 'string',
       description: 'URL of your n8n instance',
-      default: 'http://localhost:5678',
+      default: 'http://localhost:5678/api/v1',
       env_var: 'N8N_INSTANCE_URL',
       required: true,
     },
@@ -106,61 +109,11 @@ const DEFAULT_PROJECT_CONFIG = {
 };
 
 /**
- * Default MCP configuration
- * @type {Object}
- */
-const DEFAULT_MCP_CONFIG = {
-  '$schema': 'https://json-schema.org/draft/2020-12/schema',
-  name: 'n8n-bmad',
-  version: '1.0.0',
-  description: 'MCP server configuration for n8n-BMAD framework',
-  servers: {
-    n8n: {
-      command: 'npx',
-      args: ['-y', '@anthropic/mcp-server-n8n'],
-      env: {
-        N8N_API_URL: '${N8N_INSTANCE_URL}',
-        N8N_API_KEY: '${N8N_API_KEY}',
-      },
-      tools: [
-        'list_workflows', 'get_workflow', 'create_workflow', 'update_workflow',
-        'delete_workflow', 'activate_workflow', 'deactivate_workflow',
-        'execute_workflow', 'get_executions', 'get_credentials',
-      ],
-    },
-    filesystem: {
-      command: 'npx',
-      args: ['-y', '@anthropic/mcp-server-filesystem'],
-      env: {
-        ALLOWED_DIRECTORIES: '${PROJECT_ROOT}',
-      },
-    },
-  },
-  settings: {
-    logLevel: 'info',
-    timeout: 30000,
-    retryAttempts: 3,
-  },
-  profiles: {
-    development: {
-      servers: ['n8n', 'filesystem'],
-      env: {
-        N8N_INSTANCE_URL: 'http://localhost:5678',
-        DEBUG: 'true',
-      },
-    },
-    production: {
-      servers: ['n8n'],
-      env: {
-        N8N_INSTANCE_URL: '${PROD_N8N_URL}',
-      },
-    },
-  },
-};
-
-/**
  * Directory structure to create
  * @type {Array<string>}
+ */
+/**
+ * Directory structure inside .n8n-bmad folder (framework files)
  */
 const DIRECTORY_STRUCTURE = [
   'src/core/agents',
@@ -181,7 +134,6 @@ const DIRECTORY_STRUCTURE = [
   'reference/nodes',
   'reference/api',
   'reference/conventions',
-  'docs',
   'exports',
   'backups',
   'reports',
@@ -189,6 +141,19 @@ const DIRECTORY_STRUCTURE = [
   'tools/cli/lib',
   'tools/scripts',
   'test',
+];
+
+/**
+ * User-facing docs structure at project root (NOT inside .n8n-bmad)
+ * Only create the base docs folder - subfolders created on-demand when needed
+ *
+ * Created on-demand by workflows:
+ *   ./docs/backlog/stories/   - Created when first story is saved (CS)
+ *   ./docs/backlog/epics/     - Created when first epic is saved (CE)
+ *   ./docs/sprints/           - Created when first sprint is planned (SP)
+ */
+const ROOT_DOCS_STRUCTURE = [
+  'docs',                      // Root docs folder only
 ];
 
 /**
@@ -212,16 +177,39 @@ async function isEmptyOrNonExistent(dir) {
 }
 
 /**
- * Create directory structure
+ * Create directory structure inside .n8n-bmad folder AND root docs structure
  * @async
- * @param {string} baseDir - Base directory
+ * @param {string} baseDir - Base directory (project root)
  * @param {boolean} dryRun - If true, don't actually create
- * @returns {Promise<Array<string>>} Created directories
+ * @returns {Promise<Object>} Object with bmadDir path and created directories array
  */
 async function createDirectories(baseDir, dryRun = false) {
+  const bmadDir = path.join(baseDir, '.n8n-bmad');
   const created = [];
 
+  // Create .n8n-bmad root folder first
+  if (!dryRun) {
+    await fs.mkdir(bmadDir, { recursive: true });
+  }
+  created.push('.n8n-bmad');
+
+  // Create subdirectories inside .n8n-bmad (framework files)
   for (const dir of DIRECTORY_STRUCTURE) {
+    const fullPath = path.join(bmadDir, dir);
+
+    try {
+      await fs.access(fullPath);
+      // Directory exists
+    } catch {
+      if (!dryRun) {
+        await fs.mkdir(fullPath, { recursive: true });
+      }
+      created.push(`.n8n-bmad/${dir}`);
+    }
+  }
+
+  // Create user-facing docs structure at project root (NOT inside .n8n-bmad)
+  for (const dir of ROOT_DOCS_STRUCTURE) {
     const fullPath = path.join(baseDir, dir);
 
     try {
@@ -235,7 +223,7 @@ async function createDirectories(baseDir, dryRun = false) {
     }
   }
 
-  return created;
+  return { bmadDir, created };
 }
 
 /**
@@ -268,6 +256,13 @@ async function generateConfig(baseDir, answers, dryRun = false) {
     config.defaults.workflow.timezone = answers.timezone;
   }
 
+  // Add scale profile configuration
+  if (answers.scaleProfile) {
+    config.project = config.project || {};
+    config.project.scale_profile = answers.scaleProfile;
+    config.project.platform = answers.platform || 'claude-code';
+  }
+
   const yamlContent = '# n8n-BMAD Framework Configuration\n' +
     '# Generated by n8n-bmad init\n\n' +
     yaml.dump(config, { lineWidth: 120 });
@@ -281,9 +276,9 @@ async function generateConfig(baseDir, answers, dryRun = false) {
 }
 
 /**
- * Generate MCP configuration file
+ * Generate MCP configuration file at project root for Claude Code compatibility
  * @async
- * @param {string} baseDir - Base directory
+ * @param {string} baseDir - Project root directory (not .n8n-bmad)
  * @param {Object} answers - User answers
  * @param {boolean} dryRun - If true, don't actually write
  * @returns {Promise<string>} MCP config file path
@@ -291,11 +286,22 @@ async function generateConfig(baseDir, answers, dryRun = false) {
 async function generateMcpConfig(baseDir, answers, dryRun = false) {
   const mcpPath = path.join(baseDir, '.mcp.json');
 
-  const mcpConfig = { ...DEFAULT_MCP_CONFIG };
-
-  if (answers.n8nUrl) {
-    mcpConfig.profiles.development.env.N8N_INSTANCE_URL = answers.n8nUrl;
-  }
+  // Build MCP config with actual values (Claude Code doesn't support variable placeholders)
+  const mcpConfig = {
+    mcpServers: {
+      n8n: {
+        command: 'npx',
+        args: ['-y', 'n8n-mcp'],
+        env: {
+          MCP_MODE: 'stdio',                    // REQUIRED for Claude Code
+          LOG_LEVEL: 'error',                   // Suppress debug output
+          DISABLE_CONSOLE_OUTPUT: 'true',       // Keep output clean
+          N8N_API_URL: answers.n8nUrl || 'http://localhost:5678/api/v1',
+          N8N_API_KEY: answers.n8nApiKey || '',
+        },
+      },
+    },
+  };
 
   if (!dryRun) {
     await fs.writeFile(mcpPath, JSON.stringify(mcpConfig, null, 2), 'utf8');
@@ -376,7 +382,7 @@ async function generateEnvExample(baseDir, dryRun = false) {
 # Copy this file to .env and fill in your values
 
 # n8n Instance URL
-N8N_INSTANCE_URL=http://localhost:5678
+N8N_INSTANCE_URL=http://localhost:5678/api/v1
 
 # n8n API Key (optional, for API access)
 N8N_API_KEY=
@@ -396,6 +402,87 @@ PROJECT_ROOT=.
 }
 
 /**
+ * Generate actual .env file with API key
+ * @async
+ * @param {string} baseDir - Base directory (.n8n-bmad folder)
+ * @param {Object} answers - User answers
+ * @param {boolean} dryRun - If true, don't actually write
+ * @returns {Promise<string>} Env file path
+ */
+async function generateEnvFile(baseDir, answers, dryRun = false) {
+  const envPath = path.join(baseDir, '.env');
+  const content = `# n8n-BMAD Environment Configuration
+N8N_INSTANCE_URL=${answers.n8nUrl || 'http://localhost:5678/api/v1'}
+N8N_API_KEY=${answers.n8nApiKey || ''}
+PROJECT_ROOT=.
+`;
+
+  if (!dryRun) {
+    await fs.writeFile(envPath, content, 'utf8');
+  }
+
+  return envPath;
+}
+
+/**
+ * Generate Claude Code slash command files from agent YAML
+ * @async
+ * @param {string} projectRoot - Project root directory (where .claude folder will be created)
+ * @param {string} bmadDir - The .n8n-bmad directory path (source of agent files)
+ * @param {boolean} dryRun - If true, don't actually create files
+ * @returns {Promise<Array<Object>>} List of generated command info
+ */
+async function generateClaudeCommandFiles(projectRoot, bmadDir, dryRun = false) {
+  // Source agent files are in .n8n-bmad/src/core/agents/
+  const sourceAgentsPath = path.join(bmadDir, 'src', 'core', 'agents');
+
+  // Target is .claude/commands/n8n/ in project root (for /n8n:{name} commands)
+  const targetCommandsPath = path.join(projectRoot, '.claude', 'commands', 'n8n');
+
+  return await generateClaudeCommands(sourceAgentsPath, targetCommandsPath, dryRun);
+}
+
+/**
+ * Copy agent YAML files from package source to project
+ * @async
+ * @param {string} bmadDir - The .n8n-bmad directory path
+ * @param {boolean} dryRun - If true, don't actually copy
+ * @returns {Promise<Array<string>>} List of copied file names
+ */
+async function copyAgentFiles(bmadDir, dryRun = false) {
+  // Get package root (init.js is at tools/cli/commands/)
+  const packageRoot = path.resolve(__dirname, '..', '..', '..');
+  const sourceAgentsPath = path.join(packageRoot, 'src', 'core', 'agents');
+  const targetAgentsPath = path.join(bmadDir, 'src', 'core', 'agents');
+
+  const copied = [];
+
+  try {
+    // Read all agent files from package source
+    const files = await fs.readdir(sourceAgentsPath);
+    const agentFiles = files.filter(f => f.endsWith('.agent.yaml'));
+
+    for (const file of agentFiles) {
+      const sourcePath = path.join(sourceAgentsPath, file);
+      const targetPath = path.join(targetAgentsPath, file);
+
+      if (!dryRun) {
+        const content = await fs.readFile(sourcePath, 'utf8');
+        await fs.writeFile(targetPath, content, 'utf8');
+      }
+      copied.push(file);
+    }
+  } catch (error) {
+    // If source directory doesn't exist, skip silently
+    if (error.code !== 'ENOENT') {
+      throw error;
+    }
+  }
+
+  return copied;
+}
+
+/**
  * Interactive initialization prompts
  * @async
  * @param {Object} options - Command options
@@ -405,9 +492,12 @@ async function promptUser(options) {
   if (options.yes) {
     return {
       projectName: 'My n8n Project',
-      n8nUrl: 'http://localhost:5678',
+      n8nUrl: 'http://localhost:5678/api/v1',
+      n8nApiKey: '',
       workflowPrefix: 'wf_',
       timezone: 'UTC',
+      scaleProfile: 'auto',
+      platform: 'claude-code',
       initGit: true,
       installDeps: true,
     };
@@ -427,7 +517,7 @@ async function promptUser(options) {
       type: 'input',
       name: 'n8nUrl',
       message: 'n8n instance URL:',
-      default: 'http://localhost:5678',
+      default: 'http://localhost:5678/api/v1',
       validate: (input) => {
         try {
           new URL(input);
@@ -436,6 +526,11 @@ async function promptUser(options) {
           return 'Please enter a valid URL';
         }
       },
+    },
+    {
+      type: 'password',
+      name: 'n8nApiKey',
+      message: 'n8n API key (for MCP/Claude Code integration, press Enter to skip):',
     },
     {
       type: 'input',
@@ -458,6 +553,34 @@ async function promptUser(options) {
         'Australia/Sydney',
       ],
       default: 'UTC',
+    },
+    {
+      type: 'list',
+      name: 'scaleProfile',
+      message: 'Project scale profile:',
+      choices: [
+        {
+          name: 'Quick Flow - Minimal ceremony (1-15 stories, bug fixes, PoCs)',
+          value: 'quick',
+          short: 'Quick Flow',
+        },
+        {
+          name: 'Standard - Balanced process (10-50 stories, typical projects)',
+          value: 'standard',
+          short: 'Standard',
+        },
+        {
+          name: 'Enterprise - Full ceremony (30+ stories, compliance required)',
+          value: 'enterprise',
+          short: 'Enterprise',
+        },
+        {
+          name: 'Auto-detect - Let the framework decide based on context',
+          value: 'auto',
+          short: 'Auto-detect',
+        },
+      ],
+      default: 'auto',
     },
     {
       type: 'confirm',
@@ -490,7 +613,8 @@ function createInitCommand() {
     .option('--skip-npm', 'Skip npm install')
     .option('-t, --template <name>', 'Use a project template', 'default')
     .action(async (options) => {
-      const globalOptions = command.parent?._globalOptions || {};
+      // Global options are set on this command by the preAction hook in n8n-bmad-cli.js
+      const globalOptions = command._globalOptions || command.parent?._globalOptions || {};
       const dryRun = globalOptions.dryRun || false;
       const skipConfirm = globalOptions.yes || false;
 
@@ -526,10 +650,10 @@ function createInitCommand() {
           displayHeader('Dry Run - No changes will be made');
         }
 
-        // Create directory structure
+        // Create directory structure: framework files in .n8n-bmad, user docs at project root
         const spinner = ora('Creating directory structure...').start();
-        const createdDirs = await createDirectories(targetDir, dryRun);
-        spinner.succeed(`Created ${createdDirs.length} directories`);
+        const { bmadDir, created: createdDirs } = await createDirectories(targetDir, dryRun);
+        spinner.succeed(`Created ${createdDirs.length} directories (framework in .n8n-bmad/, docs at project root)`);
 
         if (createdDirs.length > 0 && globalOptions.verbose) {
           displayList(createdDirs.slice(0, 10), { bullet: '+' });
@@ -538,24 +662,46 @@ function createInitCommand() {
           }
         }
 
-        // Generate configuration
+        // Generate configuration files
+        // .mcp.json goes to project root for Claude Code compatibility
+        // Other files go inside .n8n-bmad folder
         spinner.start('Generating configuration files...');
-        await generateConfig(targetDir, answers, dryRun);
-        await generateMcpConfig(targetDir, answers, dryRun);
-        await generateGitignore(targetDir, dryRun);
-        await generateEnvExample(targetDir, dryRun);
+        await generateConfig(bmadDir, answers, dryRun);
+        await generateMcpConfig(targetDir, answers, dryRun);  // Project root for Claude Code
+        await generateGitignore(bmadDir, dryRun);
+        await generateEnvExample(bmadDir, dryRun);
+        await generateEnvFile(bmadDir, answers, dryRun);
         spinner.succeed('Configuration files generated');
 
         if (globalOptions.verbose) {
           displayList([
-            'src/core/module.yaml',
-            '.mcp.json',
-            '.gitignore',
-            '.env.example',
+            '.n8n-bmad/src/core/module.yaml',
+            '.mcp.json',  // At project root for Claude Code
+            '.n8n-bmad/.gitignore',
+            '.n8n-bmad/.env.example',
+            '.n8n-bmad/.env',
           ], { bullet: '+' });
         }
 
-        // Initialize git if requested
+        // Copy agent files from package
+        spinner.start('Copying agent files...');
+        const copiedAgents = await copyAgentFiles(bmadDir, dryRun);
+        spinner.succeed(`Copied ${copiedAgents.length} agent files`);
+
+        if (globalOptions.verbose) {
+          displayList(copiedAgents, { bullet: '+' });
+        }
+
+        // Generate Claude Code slash commands
+        spinner.start('Generating Claude Code commands...');
+        const generatedCommands = await generateClaudeCommandFiles(targetDir, bmadDir, dryRun);
+        spinner.succeed(`Generated ${generatedCommands.length} Claude Code slash commands`);
+
+        if (globalOptions.verbose && generatedCommands.length > 0) {
+          displayList(generatedCommands.map(c => c.slashCommand), { bullet: '+' });
+        }
+
+        // Initialize git if requested (in project root, not .n8n-bmad)
         if (answers.initGit && !options.skipGit) {
           spinner.start('Initializing git repository...');
           if (!dryRun) {
@@ -571,16 +717,16 @@ function createInitCommand() {
           }
         }
 
-        // Install dependencies if requested
+        // Install dependencies if requested (in .n8n-bmad folder)
         if (answers.installDeps && !options.skipNpm) {
           spinner.start('Installing npm dependencies...');
           if (!dryRun) {
             const { execSync } = require('child_process');
             try {
-              execSync('npm install', { cwd: targetDir, stdio: 'ignore' });
+              execSync('npm install', { cwd: bmadDir, stdio: 'ignore' });
               spinner.succeed('Dependencies installed');
             } catch (error) {
-              spinner.warn('Could not install dependencies. Run "npm install" manually.');
+              spinner.warn('Could not install dependencies. Run "npm install" manually in .n8n-bmad/');
             }
           } else {
             spinner.succeed('Dependencies installed (dry run)');
@@ -588,19 +734,69 @@ function createInitCommand() {
         }
 
         // Display success message
+        const profileNames = {
+          quick: 'Quick Flow (minimal ceremony)',
+          standard: 'Standard (balanced process)',
+          enterprise: 'Enterprise (full ceremony)',
+          auto: 'Auto-detect',
+        };
         console.log();
         displayBox([
           'n8n-BMAD Project Initialized!',
           '',
           `Project: ${answers.projectName}`,
-          `Location: ${targetDir}`,
-          '',
-          'Next steps:',
-          '  1. Review src/core/module.yaml',
-          '  2. Copy .env.example to .env',
-          '  3. Run "n8n-bmad agent list" to see agents',
-          '  4. Run "n8n-bmad --help" for more commands',
+          `Scale: ${profileNames[answers.scaleProfile] || 'Auto-detect'}`,
         ], { title: 'Success', style: 'round' });
+
+        // Clear next step guidance
+        console.log();
+        displayHeader('Your First Command', { style: 'compact' });
+        console.log();
+        console.log('  Start any project with:');
+        console.log('    ' + chalk.cyan('/n8n:pm *create-prd') + '    ← Start here');
+        console.log();
+        console.log('  ' + chalk.gray('PRD auto-scales based on your project complexity.'));
+        console.log('  ' + chalk.gray('Simple projects get lean PRD, complex ones get comprehensive PRD.'));
+        console.log();
+
+        // Agent + Skill Pattern
+        displayHeader('Agent + Skill Pattern', { style: 'compact' });
+        console.log();
+        console.log('  ' + chalk.yellow('/n8n:agent *skill') + '   ← Primary (self-documenting)');
+        console.log('  ' + chalk.gray('TRIGGER') + '              ← Shortcut (power users)');
+        console.log();
+        console.log('  Examples:');
+        console.log('    ' + chalk.cyan('/n8n:pm *create-prd') + '       Create PRD');
+        console.log('    ' + chalk.cyan('/n8n:po *validate-prd') + '     Validate PRD');
+        console.log('    ' + chalk.cyan('/n8n:sm *story-draft') + '      Draft story');
+        console.log('    ' + chalk.cyan('/n8n:po *validate-story') + '   Validate story');
+        console.log();
+
+        // Essential commands
+        displayHeader('Discover Skills', { style: 'compact' });
+        console.log();
+        console.log('  ' + chalk.cyan('/n8n:pm') + '   Show PM skills (create PRD, epic, sprint)');
+        console.log('  ' + chalk.cyan('/n8n:po') + '   Show PO skills (validate everything)');
+        console.log('  ' + chalk.cyan('/n8n:sm') + '   Show SM skills (draft stories, ceremonies)');
+        console.log('  ' + chalk.cyan('/n8n:dev') + '  Show Developer skills');
+        console.log();
+
+        // Workflow reference
+        displayHeader('The Flow (PM creates → PO validates)', { style: 'compact' });
+        console.log();
+        console.log('  /n8n:pm *create-prd → /n8n:po *validate-prd → /n8n:arch *create-architecture');
+        console.log('  /n8n:sm *story-draft → /n8n:po *validate-story → /n8n:dev *dev-story');
+        console.log();
+
+        // Claude Code ready
+        displayHeader('Claude Code Ready', { style: 'compact' });
+        console.log();
+        console.log('  Run ' + chalk.cyan('/n8n:pm') + ' to see all PM skills');
+        console.log('  Run ' + chalk.cyan('/n8n:po') + ' to see all validation skills');
+        console.log();
+
+        // Quick start reference
+        console.log(chalk.gray('  See QUICKSTART.md for a 5-minute guide'));
 
       } catch (error) {
         displayError(`Initialization failed: ${error.message}`);
