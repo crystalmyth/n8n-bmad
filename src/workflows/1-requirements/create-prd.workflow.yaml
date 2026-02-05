@@ -1,0 +1,133 @@
+# Create PRD Workflow
+# Phase 1: Requirements
+# Agent: Product Owner (PO)
+# Trigger: CP
+
+workflow:
+  id: create-prd
+  name: "Create PRD"
+  trigger: "CP"
+  phase: "1-requirements"
+  agent: "po"
+  description: "Create a Product Requirements Document with expert facilitation"
+
+purpose: |
+  Guide the user through creating a comprehensive PRD for their n8n
+  workflow automation project. Uses interview-style facilitation.
+
+inputs:
+  - name: product_name
+    description: "Name of the product or feature"
+    required: true
+
+  - name: template_path
+    description: "Path to PRD template"
+    default: "templates/project/PRD.md"
+
+sections:
+  overview:
+    questions:
+      - "What is the name of this product/feature?"
+      - "Describe it in one sentence."
+      - "What version is this?"
+      - "Who is the product owner?"
+
+  problem:
+    questions:
+      - "What problem does this solve?"
+      - "How big is this problem? (affected users, cost, frequency)"
+      - "What happens if we don't solve this?"
+    metrics:
+      - Hours wasted per week
+      - Errors per month
+      - Revenue impact
+
+  goals:
+    questions:
+      - "What are the primary goals?"
+      - "How will we measure success?"
+      - "What does 'done' look like?"
+    format: |
+      | Goal | Success Metric | Target |
+      |------|---------------|--------|
+      | {goal} | {metric} | {target} |
+
+  personas:
+    questions:
+      - "Who are the users of this workflow?"
+      - "What are their roles?"
+      - "What are their pain points?"
+
+  requirements:
+    functional:
+      prompt: "What must this workflow do? List all features."
+      format: "FR-{n}: {requirement}"
+
+    non_functional:
+      categories:
+        - Performance (execution time, volume)
+        - Reliability (uptime, error rate)
+        - Security (auth, data handling)
+        - Scalability (growth expectations)
+
+  workflow_spec:
+    questions:
+      - "What triggers this workflow? (webhook, schedule, manual)"
+      - "What are the data sources?"
+      - "What are the outputs/destinations?"
+      - "What transformations are needed?"
+      - "How should errors be handled?"
+
+  dependencies:
+    questions:
+      - "What external services are needed?"
+      - "What credentials are required?"
+      - "Are there any blockers?"
+
+  timeline:
+    questions:
+      - "When is this needed?"
+      - "What are the key milestones?"
+      - "Are there any fixed deadlines?"
+
+  risks:
+    prompt: "What could go wrong?"
+    format: |
+      | Risk | Impact | Probability | Mitigation |
+      |------|--------|-------------|------------|
+
+output:
+  path: "./docs/requirements/{product_name}-prd.md"
+  template: "templates/project/PRD.md"
+
+instructions: |
+  ## Create PRD Instructions
+
+  Lead the user through each section using interview-style questions.
+
+  1. Start with Overview - get the basics
+  2. Understand the Problem deeply
+  3. Define measurable Goals
+  4. Identify User Personas
+  5. List Functional Requirements
+  6. Specify Non-Functional Requirements
+  7. Detail Workflow Specification
+  8. Identify Dependencies
+  9. Establish Timeline
+  10. Assess Risks
+
+  **Finalization:**
+  After gathering all info, ask user to confirm, then use FP trigger
+  to finalize and save the PRD.
+
+checklist:
+  - Product name and version defined
+  - Problem clearly stated with metrics
+  - Goals have measurable success criteria
+  - User personas identified
+  - All functional requirements listed
+  - NFRs specified for each category
+  - Workflow trigger/sources/destinations defined
+  - Dependencies and credentials identified
+  - Timeline with milestones set
+  - Risks assessed with mitigations

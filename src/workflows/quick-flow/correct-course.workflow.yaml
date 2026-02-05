@@ -1,0 +1,198 @@
+# Correct Course Workflow
+# Handle mid-project changes to PRDs, Epics, or Stories
+# Usage: Type "CC" or use /n8n-correct-course
+
+workflow:
+  id: correct-course
+  name: "Correct Course"
+  trigger: "CC"
+  description: "Handle changes to requirements or plans mid-implementation"
+  standalone: true
+
+purpose: |
+  Facilitate course corrections when requirements change, blockers arise,
+  or plans need adjustment. Routes to appropriate agent based on document type.
+
+inputs:
+  - name: document_type
+    description: "Type of document to correct"
+    options:
+      - prd
+      - epic
+      - story
+    required: true
+
+  - name: document_path
+    description: "Path to the document (optional - will prompt if not provided)"
+    required: false
+
+  - name: change_reason
+    description: "Reason for the course correction"
+    required: true
+
+change_types:
+  scope_change:
+    description: "Requirements added, removed, or modified"
+    impacts:
+      - PRD sections
+      - Epic scope
+      - Story acceptance criteria
+
+  blocker:
+    description: "Technical or external blocker discovered"
+    impacts:
+      - Story status
+      - Dependencies
+
+  priority_shift:
+    description: "Business priorities changed"
+    impacts:
+      - Backlog order
+      - Release plan
+
+  timeline_change:
+    description: "Deadlines or milestones changed"
+    impacts:
+      - Milestone dates
+      - Release dates
+      - Story commitments
+
+  resource_change:
+    description: "Team capacity changed"
+    impacts:
+      - Story assignments
+      - Backlog priorities
+
+steps:
+  1_identify:
+    description: "Identify what needs correction"
+    questions:
+      - "What type of document needs correction? (PRD/Epic/Story)"
+      - "What's the path to the document?"
+      - "What triggered this change?"
+      - "How urgent is this change?"
+
+  2_assess_impact:
+    description: "Assess the impact of the change"
+    analysis:
+      - Current state of document
+      - Dependencies on this document
+      - In-flight work affected
+      - Timeline implications
+    output: |
+      ## Impact Assessment
+
+      **Document:** {document_path}
+      **Change Type:** {change_type}
+
+      ### Affected Items
+      | Item | Type | Current State | Impact |
+      |------|------|---------------|--------|
+      | {item} | {type} | {state} | {impact} |
+
+      ### Risk Level
+      {low/medium/high/critical}
+
+  3_route_to_agent:
+    description: "Route to appropriate agent"
+    routing:
+      prd:
+        agent: "po"
+        trigger: "EP"
+        description: "Route to Product Owner for PRD edit"
+
+      epic:
+        agent: "po"
+        trigger: "EE"
+        description: "Route to Product Owner for Epic edit"
+
+      story:
+        agent: "po"
+        trigger: "ES"
+        description: "Route to Product Owner for Story edit"
+
+  4_document_change:
+    description: "Document the change"
+    template: |
+      ## Change Record
+
+      **ID:** CHG-{timestamp}
+      **Date:** {date}
+      **Requested By:** {requester}
+      **Document:** {document_path}
+
+      ### Change Description
+      {description}
+
+      ### Reason/Justification
+      {reason}
+
+      ### Impact Assessment
+      {impact_summary}
+
+      ### Actions Taken
+      - [ ] Document updated
+      - [ ] Stakeholders notified
+      - [ ] Dependencies updated
+      - [ ] Backlog adjusted (if applicable)
+
+      ### Approvals
+      | Role | Name | Date | Decision |
+      |------|------|------|----------|
+      | {role} | {name} | {date} | {approved/rejected} |
+
+  5_communicate:
+    description: "Communicate the change"
+    notifications:
+      - Team (standup visibility)
+      - Stakeholders (if scope/timeline)
+      - PM (if timeline impact)
+      - Developers (if in-progress work)
+
+instructions: |
+  ## Correct Course Instructions
+
+  When invoked, guide the user through a structured course correction:
+
+  1. **Identify the Change**
+     - What document type? (PRD, Epic, Story)
+     - What's the document path?
+     - What triggered this change?
+
+  2. **Assess Impact**
+     - What else is affected?
+     - Is work in progress?
+     - What's the risk level?
+
+  3. **Route to Agent**
+     Based on document type:
+     - PRD → PO (trigger: EP)
+     - Epic → PO (trigger: EE)
+     - Story → PO (trigger: ES)
+
+  4. **Document the Change**
+     - Create change record
+     - Update document with change log
+     - Track approvals
+
+  5. **Communicate**
+     - Notify affected parties
+     - Update backlog if applicable
+     - Ensure visibility
+
+  **Quick Reference:**
+  - `CC` then select document type
+  - Or go directly: `EP` (edit PRD), `EE` (edit epic), `ES` (edit story)
+
+output:
+  change_record_path: "./docs/changes/chg-{timestamp}.md"
+
+checklist:
+  - Change type identified
+  - Document located
+  - Impact assessed
+  - Appropriate agent engaged
+  - Changes made and saved
+  - Change log updated
+  - Stakeholders notified
+  - Backlog adjusted if needed

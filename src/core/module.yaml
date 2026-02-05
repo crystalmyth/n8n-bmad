@@ -3,8 +3,85 @@
 
 framework:
   name: n8n-BMAD
-  version: "1.0.0"
+  version: "1.0.0-beta.1"
   description: "AI-powered methodology framework for n8n workflow automation teams"
+
+# Scale-Adaptive Intelligence
+# Automatically adjusts ceremony based on project complexity
+scale_profiles:
+  quick:
+    name: "Quick Flow"
+    description: "Minimal ceremony for small tasks"
+    max_stories: 15
+    indicators:
+      - "bug fix"
+      - "small enhancement"
+      - "single workflow"
+      - "PoC or spike"
+    required_workflows: ["PRD", "DS", "CR"]
+    optional_workflows: ["DW"]
+    skip_workflows: ["CE", "IR", "SR"]
+    agents: ["quick-flow", "developer", "qa"]
+    documentation: minimal
+
+  standard:
+    name: "Standard Process"
+    description: "Balanced ceremony for typical projects"
+    min_stories: 10
+    max_stories: 50
+    indicators:
+      - "new feature"
+      - "multi-workflow"
+      - "team collaboration"
+      - "API integration"
+    required_workflows: ["PRD", "CE", "CS", "VS", "CA", "IR", "NW", "CR"]
+    optional_workflows: ["TP", "SR", "DW"]
+    agents: ["po", "pm", "architect", "developer", "qa", "devops"]
+    documentation: standard
+
+  enterprise:
+    name: "Enterprise Process"
+    description: "Full ceremony for complex, regulated projects"
+    min_stories: 30
+    indicators:
+      - "enterprise integration"
+      - "compliance required"
+      - "multi-team"
+      - "production critical"
+      - "PII or financial data"
+    required_workflows: ["PRD", "VP", "CE", "VE", "CS", "VS", "CA", "VA", "IR", "TP", "SR", "TH"]
+    gates:
+      - name: "Architecture Review"
+        workflow: "VA"
+        required_approvers: ["architect", "security"]
+      - name: "Security Sign-off"
+        workflow: "SR"
+        required_approvers: ["security"]
+      - name: "Go/No-Go"
+        workflow: "GN"
+        required_approvers: ["pm", "po"]
+    agents: ["po", "pm", "sm", "architect", "developer", "qa", "security", "devops", "ba"]
+    documentation: comprehensive
+
+# Profile Detection Rules
+profile_detection:
+  auto_detect: true
+  prompt_on_init: true
+  detection_rules:
+    - condition: "story_count <= 15 AND no_compliance_keywords"
+      profile: quick
+    - condition: "story_count > 30 OR has_compliance_keywords"
+      profile: enterprise
+    - condition: "default"
+      profile: standard
+  compliance_keywords:
+    - "HIPAA"
+    - "GDPR"
+    - "SOC2"
+    - "PCI"
+    - "financial"
+    - "healthcare"
+    - "PII"
 
 # Framework Options
 options:
@@ -62,11 +139,30 @@ defaults:
     template_format: "markdown"
 
 # Output Paths
+# IMPORTANT: User documents go to ./docs/ at PROJECT ROOT (not inside .n8n-bmad)
 output:
-  docs_path: "./docs/generated"
-  exports_path: "./exports"
-  backups_path: "./backups"
-  reports_path: "./reports"
+  # User-facing documents - saved at project root for visibility
+  docs_root: "./docs"
+  prd: "./docs/prd.md"                    # Single file, or ./docs/prd/ when sharded
+  architecture: "./docs/architecture.md"   # Single file, or ./docs/architecture/ when sharded
+  epics: "./docs/backlog/epics"
+  stories: "./docs/backlog/stories"
+  # Generated/internal outputs - stay in .n8n-bmad
+  generated: "./.n8n-bmad/generated"
+  exports: "./.n8n-bmad/exports"
+  backups: "./.n8n-bmad/backups"
+  reports: "./.n8n-bmad/reports"
+
+# Sharding configuration
+sharding:
+  enabled: true
+  threshold_lines: 500    # Shard documents larger than this
+  # When sharding, convert ./docs/prd.md to:
+  # ./docs/prd/
+  # ├── index.md          # Overview + table of contents
+  # ├── 01-problem.md
+  # ├── 02-requirements.md
+  # └── ...
 
 # Agent Configuration
 agents:
@@ -86,11 +182,13 @@ agents:
     - integration
     - data-analyst
     - tech-writer
+    - prompt-engineer
+    - quick-flow
 
 # Workflow Definitions
 workflows:
-  manifest_path: "./src/core/workflow-manifest.csv"
-  workflows_path: "./src/core/workflows"
+  manifest_path: "./src/workflows/workflow-manifest.yaml"
+  workflows_path: "./src/workflows"
 
 # Task Definitions
 tasks:
@@ -134,6 +232,13 @@ mcp:
   servers:
     - n8n
     - filesystem
+
+# Node Discovery Configuration
+# Enables discovery of custom nodes installed on user's n8n instance
+node_discovery:
+  enabled: true
+  cache_path: "./.n8n-bmad/cache/installed-nodes.json"
+  cache_ttl_hours: 24
 
 # Logging
 logging:

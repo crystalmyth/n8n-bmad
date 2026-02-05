@@ -1,0 +1,159 @@
+# Deploy Workflow
+# Phase 4: Release
+# Agent: DevOps
+# Trigger: DW
+
+workflow:
+  id: deploy-workflow
+  name: "Deploy Workflow"
+  trigger: "DW"
+  phase: "4-release"
+  agent: "devops"
+  description: "Deploy workflow to target environment"
+
+purpose: |
+  Safely deploy an n8n workflow to staging or production environment
+  with proper validation, backup, and rollback capability.
+
+inputs:
+  - name: workflow_id
+    description: "Workflow ID to deploy"
+    required: true
+
+  - name: target_env
+    description: "Target environment (staging, production)"
+    required: true
+
+  - name: activate
+    description: "Activate after deployment"
+    default: true
+
+steps:
+  1_pre_checks:
+    description: "Pre-deployment validation"
+    checks:
+      - Workflow exists in source environment
+      - Target environment accessible
+      - Required credentials exist in target
+      - No active executions in progress
+      - Code review approved
+      - Tests passing
+
+  2_backup:
+    description: "Backup current state"
+    actions:
+      - Export current workflow from target (if exists)
+      - Save backup with timestamp
+      - Document rollback procedure
+    backup_path: "./backups/{env}/{workflow_id}_{timestamp}.json"
+
+  3_deploy:
+    description: "Deploy workflow"
+    process:
+      - Export workflow from source
+      - Transform for target environment
+        - Update credential references
+        - Update webhook URLs
+        - Adjust environment variables
+      - Import to target environment
+      - Verify import success
+
+    api_commands:
+      export: |
+        curl -X GET "${SOURCE_URL}/api/v1/workflows/${WORKFLOW_ID}" \
+          -H "X-N8N-API-KEY: ${SOURCE_KEY}" \
+          -o workflow.json
+
+      import: |
+        curl -X POST "${TARGET_URL}/api/v1/workflows" \
+          -H "X-N8N-API-KEY: ${TARGET_KEY}" \
+          -H "Content-Type: application/json" \
+          -d @workflow.json
+
+  4_activate:
+    description: "Activate workflow"
+    conditions:
+      - Only if activate=true
+      - Only after successful import
+    api_command: |
+      curl -X PATCH "${TARGET_URL}/api/v1/workflows/${WORKFLOW_ID}" \
+        -H "X-N8N-API-KEY: ${TARGET_KEY}" \
+        -H "Content-Type: application/json" \
+        -d '{"active": true}'
+
+  5_verify:
+    description: "Post-deployment verification"
+    checks:
+      - Workflow exists in target
+      - Workflow is active (if requested)
+      - Test execution succeeds
+      - No errors in logs
+      - Monitoring confirms health
+
+  6_notify:
+    description: "Notify stakeholders"
+    notifications:
+      - Team channel (Slack/Teams)
+      - Release log updated
+      - Monitoring dashboards
+
+rollback:
+  trigger: "RB"
+  steps:
+    - Deactivate current workflow
+    - Import backup workflow
+    - Activate backup
+    - Verify rollback success
+    - Notify team
+
+output:
+  deployment_log: "./logs/deployments/{workflow_id}_{timestamp}.log"
+
+instructions: |
+  ## Deploy Workflow Instructions
+
+  1. **Preparation**
+     - Ensure workflow is tested and approved
+     - Verify target environment is ready
+     - Check credentials exist in target
+
+  2. **Pre-Flight Checks**
+     - All tests passing?
+     - Code review approved?
+     - Stakeholders notified?
+     - Rollback plan ready?
+
+  3. **Deployment**
+     - Create backup of current state
+     - Deploy workflow to target
+     - Activate if appropriate
+     - Verify deployment
+
+  4. **Post-Deployment**
+     - Run smoke tests
+     - Monitor for errors
+     - Update deployment log
+     - Notify stakeholders
+
+  **Rollback:**
+  If issues occur, use RB trigger immediately.
+  Never leave a broken workflow active.
+
+checklist:
+  pre_deployment:
+    - [ ] Tests passing
+    - [ ] Code review approved
+    - [ ] Credentials verified in target
+    - [ ] Rollback plan documented
+
+  deployment:
+    - [ ] Backup created
+    - [ ] Workflow deployed
+    - [ ] Workflow activated (if needed)
+
+  post_deployment:
+    - [ ] Smoke tests passed
+    - [ ] No errors in logs
+    - [ ] Monitoring verified
+    - [ ] Stakeholders notified
+    - [ ] Deployment logged

@@ -1,6 +1,6 @@
 {
   "name": "n8n-bmad",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.1",
   "description": "BMAD Framework for n8n workflow automation teams - AI-powered development methodology",
   "main": "tools/cli/n8n-bmad-cli.js",
   "bin": {
@@ -35,6 +35,19 @@
     "url": "https://github.com/crystalmyth/n8n-bmad/issues"
   },
   "homepage": "https://github.com/crystalmyth/n8n-bmad#readme",
+  "files": [
+    "tools/",
+    "src/",
+    "templates/",
+    "patterns/",
+    "reference/",
+    "docs/",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md",
+    "QUICKSTART.md",
+    ".mcp.json.example"
+  ],
   "engines": {
     "node": ">=18.0.0"
   },
@@ -57,7 +70,8 @@
     "coverageDirectory": "coverage",
     "collectCoverageFrom": [
       "tools/cli/**/*.js",
-      "!tools/cli/n8n-bmad-cli.js"
+      "!tools/cli/n8n-bmad-cli.js",
+      "!**/node_modules/**"
     ],
     "testMatch": [
       "**/test/**/*.test.js"

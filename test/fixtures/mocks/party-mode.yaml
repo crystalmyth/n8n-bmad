@@ -1,0 +1,54 @@
+parties:
+  architecture-review:
+    name: "Architecture Review"
+    trigger: AR
+    icon: "\U0001F3D7"
+    description: "Review architecture decisions with cross-functional input"
+    output_template: architecture-review.md
+    next_workflow: create-architecture
+    when_to_use:
+      - "Complex architecture decisions"
+      - "Before major refactors"
+    agents:
+      - name: Winston
+        agent: architect
+        role: lead
+        contributes:
+          - "Design review"
+          - "Pattern assessment"
+      - name: Sierra
+        agent: security
+        role: participant
+        contributes:
+          - "Security review"
+      - name: Nate
+        agent: developer
+        role: participant
+        contributes:
+          - "Feasibility check"
+
+  story-refinement:
+    name: "Story Refinement"
+    trigger: SR
+    icon: "\U0001F4DD"
+    description: "Refine stories for sprint planning"
+    output_template: refined-stories.md
+    next_workflow: null
+    when_to_use:
+      - "Before sprint planning"
+    agents:
+      - name: Victor
+        agent: po
+        role: lead
+        contributes:
+          - "Story validation"
+      - name: Nate
+        agent: developer
+        role: participant
+        contributes:
+          - "Estimation"
+      - name: Quinn
+        agent: qa
+        role: participant
+        contributes:
+          - "Test criteria"

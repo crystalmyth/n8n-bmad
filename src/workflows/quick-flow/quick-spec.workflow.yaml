@@ -1,0 +1,127 @@
+# Quick Spec Workflow
+# Analyze existing code/workflows and generate stories quickly
+# Usage: Type "QS" or use /n8n-quick-spec
+
+workflow:
+  id: quick-spec
+  name: "Quick Spec"
+  trigger: "QS"
+  description: "Analyze existing workflows and generate user stories"
+  standalone: true  # Works without loading an agent first
+
+purpose: |
+  Rapidly analyze an existing n8n workflow or codebase and generate
+  user stories for improvements, bug fixes, or new features.
+
+inputs:
+  - name: workflow_path
+    description: "Path to workflow JSON or directory to analyze"
+    required: false
+    default: "."
+
+  - name: focus_area
+    description: "What to focus on: bugs, improvements, features, all"
+    required: false
+    default: "all"
+
+steps:
+  1_analyze:
+    description: "Analyze the workflow or codebase"
+    actions:
+      - Read workflow JSON files
+      - Identify nodes and connections
+      - Detect patterns and anti-patterns
+      - Note error handling gaps
+      - Check for best practice violations
+
+  2_identify:
+    description: "Identify work items"
+    categories:
+      bugs:
+        - Missing error handling
+        - Potential null pointer issues
+        - Hardcoded values that should be configurable
+
+      improvements:
+        - Performance optimizations
+        - Code clarity enhancements
+        - Better naming conventions
+
+      features:
+        - Missing functionality
+        - Integration opportunities
+        - Automation candidates
+
+  3_generate:
+    description: "Generate user stories"
+    template: |
+      ## Story: {title}
+
+      **As a** {user_type}
+      **I want** {action}
+      **So that** {benefit}
+
+      ### Acceptance Criteria
+      - [ ] {criterion_1}
+      - [ ] {criterion_2}
+
+      ### Technical Notes
+      {technical_details}
+
+      ### Estimated Effort
+      {effort_estimate}
+
+  4_output:
+    description: "Present findings"
+    format: |
+      # Quick Spec Analysis
+
+      **Analyzed:** {target}
+      **Date:** {date}
+
+      ## Summary
+      - Bugs found: {bug_count}
+      - Improvements identified: {improvement_count}
+      - Feature opportunities: {feature_count}
+
+      ## Generated Stories
+      {stories}
+
+      ## Recommended Priority
+      1. {priority_1}
+      2. {priority_2}
+      3. {priority_3}
+
+instructions: |
+  ## Quick Spec Instructions
+
+  When invoked, follow these steps:
+
+  1. **Gather Context**
+     - Ask what workflow or directory to analyze
+     - Ask about focus area (bugs, improvements, features, or all)
+
+  2. **Perform Analysis**
+     - Read the target workflow(s)
+     - Identify issues and opportunities
+     - Categorize findings
+
+  3. **Generate Stories**
+     - Create user stories for each finding
+     - Include acceptance criteria
+     - Estimate effort (S/M/L)
+
+  4. **Present Results**
+     - Summarize findings
+     - List stories by priority
+     - Offer to save stories to backlog
+
+  **Quick Start:**
+  Just say "QS" and I'll guide you through the process.
+
+checklist:
+  - Target identified
+  - Analysis complete
+  - Stories generated with acceptance criteria
+  - Priority assigned
+  - Output formatted

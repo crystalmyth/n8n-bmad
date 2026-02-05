@@ -1,0 +1,38 @@
+# Quick Flow Team
+# Minimal team for rapid development
+
+bundle:
+  name: Quick Flow Team
+  icon: ⚡
+  description: |
+    Minimal team for rapid workflow development. Barry handles most work
+    with specialist support available when needed.
+
+agents:
+  - quick-flow    # Barry - Primary implementer
+  - architect     # Winston - Design consultation
+  - qa            # Quinn - Quality validation
+
+# Recommended workflow
+workflow:
+  quick_flow:
+    - "quick-flow: QS (Quick Spec)"
+    - "quick-flow: DS (Dev Story)"
+    - "quick-flow: CR (Code Review)"
+
+  with_design_review:
+    - "architect: SP (Select Pattern)"
+    - "quick-flow: QS → DS → CR"
+
+  with_testing:
+    - "quick-flow: QS → DS"
+    - "qa: RT (Run Tests)"
+    - "quick-flow: CR"
+
+# When to use this team
+use_cases:
+  - "Solo developer work"
+  - "Simple workflow implementation"
+  - "Bug fixes"
+  - "Quick prototypes"
+  - "Time-sensitive tasks"

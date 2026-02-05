@@ -14,7 +14,7 @@ category: agile
 | **Owner** | {owner} |
 | **Time Box** | {hours} hours |
 | **Status** | In Progress / Complete |
-| **Sprint** | {sprint} |
+| **Epic** | {epic} |
 
 ---
 

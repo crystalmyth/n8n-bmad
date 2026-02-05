@@ -1,0 +1,75 @@
+# AI Workflow Team
+# Specialized team for AI/LLM-powered workflows
+
+bundle:
+  name: AI Workflow Team
+  icon: 🤖
+  description: |
+    Specialized team for building AI-powered n8n workflows. Combines prompt
+    engineering expertise with workflow development for optimal AI integrations.
+
+agents:
+  - prompt-engineer  # Petra - AI prompt design
+  - developer        # Nate - Workflow implementation
+  - architect        # Winston - AI architecture patterns
+  - data-analyst     # Dana - Data for AI processing
+  - qa               # Quinn - AI output testing
+
+# Recommended workflow
+workflow:
+  ai_agent_workflow:
+    - "prompt-engineer: AA (AI Agent Config) → PP (Persona Design)"
+    - "prompt-engineer: TP (Tool Prompts)"
+    - "architect: CA (Architecture for AI workflow)"
+    - "developer: NW (Implement workflow)"
+    - "prompt-engineer: EP (Evaluate prompts)"
+    - "qa: RT (Test AI outputs)"
+
+  extraction_workflow:
+    - "prompt-engineer: EX (Extraction Prompt)"
+    - "prompt-engineer: FS (Few-Shot Examples)"
+    - "data-analyst: QR (Quality Rules for extracted data)"
+    - "developer: NW (Implement workflow)"
+    - "prompt-engineer: OP (Optimize for production)"
+
+  rag_workflow:
+    - "architect: CA (RAG architecture)"
+    - "prompt-engineer: RP (RAG Prompt Design)"
+    - "developer: NW (Implement retrieval + generation)"
+    - "prompt-engineer: EP (Evaluate accuracy)"
+
+  classification_workflow:
+    - "prompt-engineer: SP (Classification system prompt)"
+    - "prompt-engineer: FS (Few-shot examples per category)"
+    - "developer: NW (Implement classifier)"
+    - "qa: TP (Test plan for edge cases)"
+
+# When to use this team
+use_cases:
+  - "AI Agent implementations"
+  - "Document processing with LLMs"
+  - "Classification and extraction workflows"
+  - "RAG (Retrieval-Augmented Generation)"
+  - "AI-powered data transformation"
+  - "Chatbot and conversational workflows"
+  - "Content generation automation"
+
+# AI-specific considerations
+ai_considerations:
+  cost_optimization:
+    - "Use smaller models for simple tasks"
+    - "Cache common responses"
+    - "Batch similar requests"
+    - "Optimize prompt length"
+
+  quality_assurance:
+    - "Test with adversarial inputs"
+    - "Measure hallucination rate"
+    - "Validate structured outputs"
+    - "A/B test prompt variations"
+
+  production_readiness:
+    - "Rate limiting for API calls"
+    - "Fallback for model failures"
+    - "Logging for debugging"
+    - "Cost monitoring"

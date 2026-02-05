@@ -1,0 +1,336 @@
+# Party Mode Configuration
+# Multi-agent collaboration for complex decisions and reviews
+# Inspired by BMAD-METHOD's party mode system
+
+party_mode:
+  description: |
+    Party Mode enables simultaneous collaboration with multiple agent personas.
+    Each agent contributes their unique perspective to the discussion, creating
+    richer outcomes than single-agent interactions.
+
+  activation:
+    command: "party"
+    cli: "n8n-bmad party start {party-name}"
+    slash_command: "/n8n-party-{party-name}"
+
+# Pre-defined party configurations
+parties:
+  # Architecture Review Party
+  architecture-review:
+    trigger: "AR"
+    name: "Architecture Review"
+    icon: "🏗️"
+    description: "Multi-perspective architecture review before implementation"
+    when_to_use:
+      - "Before implementing complex workflows"
+      - "When introducing new patterns"
+      - "For critical system integrations"
+      - "Before major refactoring"
+
+    agents:
+      - agent: architect
+        name: Winston
+        role: lead
+        contributes:
+          - "Pattern validation and scalability assessment"
+          - "Technical trade-off analysis"
+          - "n8n best practices alignment"
+          - "ADR recommendations"
+
+      - agent: security
+        name: Sierra
+        role: participant
+        contributes:
+          - "Threat assessment"
+          - "Credential handling review"
+          - "Data flow security"
+          - "Compliance considerations"
+
+      - agent: developer
+        name: Nate
+        role: participant
+        contributes:
+          - "Implementation feasibility"
+          - "Expression complexity assessment"
+          - "Error handling approach"
+          - "Testing strategy"
+
+      - agent: devops
+        name: Rex
+        role: participant
+        contributes:
+          - "Deployment considerations"
+          - "Monitoring and alerting"
+          - "Environment constraints"
+          - "Rollback strategy"
+
+    output_template: "architecture-review-party.md"
+    next_workflow: "IR"
+
+  # Story Refinement Party
+  story-refinement:
+    trigger: "RF"
+    name: "Story Refinement"
+    icon: "📝"
+    description: "Collaborative story refinement for well-defined acceptance criteria"
+    when_to_use:
+      - "During backlog grooming"
+      - "When stories need technical input"
+      - "For complex feature stories"
+      - "Before implementation"
+
+    agents:
+      - agent: po
+        name: Victor
+        role: lead
+        contributes:
+          - "Business value clarification"
+          - "Acceptance criteria definition"
+          - "Scope boundaries"
+          - "Priority context"
+
+      - agent: developer
+        name: Nate
+        role: participant
+        contributes:
+          - "Technical feasibility"
+          - "Effort estimation input"
+          - "Dependency identification"
+          - "Subtask breakdown"
+
+      - agent: qa
+        name: Quinn
+        role: participant
+        contributes:
+          - "Testability assessment"
+          - "Edge cases identification"
+          - "Definition of Done criteria"
+          - "Test scenario suggestions"
+
+    output_template: "story-refinement-party.md"
+    next_workflow: "VS"
+
+  # Security Audit Party
+  security-audit:
+    trigger: "SA"
+    name: "Security Audit"
+    icon: "🔒"
+    description: "Comprehensive security review for sensitive workflows"
+    when_to_use:
+      - "Before production deployment"
+      - "For workflows handling PII"
+      - "After security incident"
+      - "For compliance requirements"
+
+    agents:
+      - agent: security
+        name: Sierra
+        role: lead
+        contributes:
+          - "Vulnerability assessment"
+          - "OWASP checklist review"
+          - "Credential audit"
+          - "Compliance mapping"
+
+      - agent: architect
+        name: Winston
+        role: participant
+        contributes:
+          - "Architecture security patterns"
+          - "Data flow analysis"
+          - "Integration security"
+          - "Defense in depth"
+
+      - agent: devops
+        name: Rex
+        role: participant
+        contributes:
+          - "Environment security"
+          - "Secret management"
+          - "Network policies"
+          - "Monitoring for threats"
+
+    output_template: "security-audit-party.md"
+    next_workflow: "SR"
+
+  # Integration Design Party
+  integration-design:
+    trigger: "ID"
+    name: "Integration Design"
+    icon: "🔌"
+    description: "Collaborative design for complex API integrations"
+    when_to_use:
+      - "New third-party integration"
+      - "Multi-system data flow"
+      - "Complex webhook scenarios"
+      - "API versioning decisions"
+
+    agents:
+      - agent: integration
+        name: Ivy
+        role: lead
+        contributes:
+          - "API analysis"
+          - "Data mapping design"
+          - "Error handling strategy"
+          - "Rate limiting approach"
+
+      - agent: data-analyst
+        name: Dana
+        role: participant
+        contributes:
+          - "Data transformation logic"
+          - "Schema validation"
+          - "Data quality rules"
+          - "Type conversion handling"
+
+      - agent: developer
+        name: Nate
+        role: participant
+        contributes:
+          - "n8n node selection"
+          - "Expression design"
+          - "Workflow structure"
+          - "Testing approach"
+
+      - agent: security
+        name: Sierra
+        role: participant
+        contributes:
+          - "Authentication review"
+          - "Sensitive data handling"
+          - "API key management"
+          - "Audit logging"
+
+    output_template: "integration-design-party.md"
+    next_workflow: "IS"
+
+  # AI Workflow Design Party
+  ai-workflow-design:
+    trigger: "AD"
+    name: "AI Workflow Design"
+    icon: "🧠"
+    description: "Design session for AI-powered workflow automation"
+    when_to_use:
+      - "LLM integration planning"
+      - "AI agent workflow design"
+      - "Prompt engineering review"
+      - "AI error handling strategy"
+
+    agents:
+      - agent: prompt-engineer
+        name: Petra
+        role: lead
+        contributes:
+          - "Prompt design"
+          - "System message optimization"
+          - "Few-shot example selection"
+          - "Token budget planning"
+
+      - agent: developer
+        name: Nate
+        role: participant
+        contributes:
+          - "n8n AI node configuration"
+          - "Workflow orchestration"
+          - "Response parsing"
+          - "Fallback handling"
+
+      - agent: architect
+        name: Winston
+        role: participant
+        contributes:
+          - "AI patterns (Chain, RAG, Agent)"
+          - "Cost optimization"
+          - "Latency considerations"
+          - "Model selection guidance"
+
+      - agent: qa
+        name: Quinn
+        role: participant
+        contributes:
+          - "AI output validation"
+          - "Hallucination detection"
+          - "Edge case testing"
+          - "Quality metrics"
+
+    output_template: "ai-workflow-design-party.md"
+    next_workflow: "AA"
+
+  # Post-Incident Review Party
+  post-incident:
+    trigger: "PI"
+    name: "Post-Incident Review"
+    icon: "🚨"
+    description: "Blameless post-mortem after production incidents"
+    when_to_use:
+      - "After production incident"
+      - "After workflow failure"
+      - "After security event"
+      - "For learning from failures"
+
+    agents:
+      - agent: devops
+        name: Rex
+        role: lead
+        contributes:
+          - "Incident timeline"
+          - "Root cause analysis"
+          - "Mitigation effectiveness"
+          - "Monitoring improvements"
+
+      - agent: developer
+        name: Nate
+        role: participant
+        contributes:
+          - "Code/workflow analysis"
+          - "Bug identification"
+          - "Fix implementation plan"
+          - "Regression prevention"
+
+      - agent: sm
+        name: Sam
+        role: participant
+        contributes:
+          - "Blameless facilitation"
+          - "Action item tracking"
+          - "Process improvements"
+          - "Team learnings"
+
+      - agent: security
+        name: Sierra
+        role: participant
+        contributes:
+          - "Security implications"
+          - "Data exposure assessment"
+          - "Compliance impact"
+          - "Preventive controls"
+
+    output_template: "post-incident-party.md"
+    next_workflow: "MP"
+
+# Party Mode Protocol
+protocol:
+  start:
+    - "Announce party purpose and participants"
+    - "Lead agent sets context and goals"
+    - "Each participant states their perspective focus"
+
+  discussion:
+    - "Lead agent facilitates discussion flow"
+    - "Each agent contributes from their expertise"
+    - "Cross-functional insights are captured"
+    - "Disagreements are surfaced and resolved"
+
+  conclusion:
+    - "Lead agent summarizes key decisions"
+    - "Action items assigned to relevant agents"
+    - "Output document generated"
+    - "Next workflow triggered if applicable"
+
+# CLI Integration
+cli:
+  commands:
+    list: "n8n-bmad party list"
+    start: "n8n-bmad party start {name}"
+    describe: "n8n-bmad party describe {name}"

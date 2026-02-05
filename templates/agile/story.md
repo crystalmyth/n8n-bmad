@@ -1,8 +1,26 @@
 ---
 template: user-story
-version: "1.0"
+version: "1.1"
 category: agile
 ---
+
+<!--
+Story ID Convention:
+
+Epic-Scoped (6+ stories):
+  Format: story-{epic}.{story}-{slug}.md
+  Example: story-1.3-webhook-setup.md (Epic 1, Story 3)
+
+Standalone (< 6 stories or Quick Flow):
+  Format: {type}-{sequence}-{slug}.md
+  Types: feat, bug, hotfix, chore
+  Examples: feat-001-crm-sync.md, bug-002-timeout.md
+
+Detection Logic:
+  1. Check ./docs/backlog/epics/ for epic files
+  2. If epics exist → use story-X.Y format
+  3. If no epics → use feat-xxx, bug-xxx, etc.
+-->
 
 # User Story: {story_title}
 
@@ -14,9 +32,19 @@ category: agile
 | **Epic** | {epic_id} |
 | **Priority** | {P1/P2/P3} |
 | **Story Points** | {points} |
-| **Status** | Backlog / Ready / In Progress / Done |
-| **Assignee** | {assignee} |
-| **Sprint** | {sprint} |
+| **Status** | 📋 Backlog |
+| **Iteration** | - |
+| **Assignee** | - |
+| **Depends On** | {story_ids_or_none} |
+| **Blocks** | {story_ids_or_none} |
+
+<!-- Status Lifecycle:
+  📋 Backlog    → Story created (SM *story-draft)
+  ✅ Approved   → Validated by PO (PO *validate-story)
+  🔄 In Progress → Developer started (Dev *dev-story)
+  👀 Review     → Implementation complete, awaiting QA
+  ✅ Done       → QA approved (QA *code-review)
+-->
 
 ---
 
@@ -78,8 +106,25 @@ Then {expected_result}
 
 ## Dependencies
 
+### Story Dependencies
+| Story ID | Title | Status | Why Required |
+|----------|-------|--------|--------------|
+| {story_id} | {title} | {status} | {reason} |
+
+### External Dependencies
 - [ ] {dependency_1}
 - [ ] {dependency_2}
+
+---
+
+## Subtasks
+
+<!-- Developer updates these as work progresses -->
+- [ ] {subtask_1}
+- [ ] {subtask_2}
+- [ ] {subtask_3}
+- [ ] {subtask_4}
+- [ ] {subtask_5}
 
 ---
 

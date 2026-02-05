@@ -1,16 +1,16 @@
 ---
-template: sprint-retrospective
+template: milestone-retrospective
 version: "1.0"
 category: agile
 ---
 
-# Sprint Retrospective
+# Milestone Retrospective
 
-## Sprint Information
+## Milestone Information
 
 | Field | Value |
 |-------|-------|
-| **Sprint** | {sprint_name} |
+| **Milestone/Epic** | {milestone_name} |
 | **Date** | {date} |
 | **Facilitator** | {facilitator} |
 | **Attendees** | {attendee_list} |
@@ -18,20 +18,19 @@ category: agile
 
 ---
 
-## Sprint Summary
+## Milestone Summary
 
 | Metric | Planned | Actual |
 |--------|---------|--------|
-| Story Points | {planned} | {completed} |
 | Stories | {planned} | {completed} |
 | Bugs Fixed | {planned} | {completed} |
-| Sprint Goal | | {Achieved / Partially / Not Achieved} |
+| Milestone Goal | | {Achieved / Partially / Not Achieved} |
 
 ---
 
 ## What Went Well
 
-{Things that worked well this sprint.}
+{Things that worked well during this milestone.}
 
 1. {item_1}
 2. {item_2}
@@ -51,7 +50,7 @@ category: agile
 
 ## What We Learned
 
-{Key learnings from this sprint.}
+{Key learnings from this milestone.}
 
 1. {learning_1}
 2. {learning_2}
@@ -82,11 +81,11 @@ Rate each area (1-5):
 
 | Area | Rating | Trend | Notes |
 |------|--------|-------|-------|
-| Team Collaboration | {1-5} | ↑↓→ | |
-| Technical Practices | {1-5} | ↑↓→ | |
-| Process Effectiveness | {1-5} | ↑↓→ | |
-| Work-Life Balance | {1-5} | ↑↓→ | |
-| Stakeholder Engagement | {1-5} | ↑↓→ | |
+| Team Collaboration | {1-5} | {trend} | |
+| Technical Practices | {1-5} | {trend} | |
+| Process Effectiveness | {1-5} | {trend} | |
+| Work-Life Balance | {1-5} | {trend} | |
+| Stakeholder Engagement | {1-5} | {trend} | |
 
 ---
 
@@ -105,9 +104,9 @@ Rate each area (1-5):
 
 ---
 
-## Next Sprint Focus
+## Next Milestone Focus
 
-{Based on this retro, what should we focus on next sprint?}
+{Based on this retro, what should we focus on in the next milestone?}
 
 1. {focus_area_1}
 2. {focus_area_2}

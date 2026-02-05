@@ -1,0 +1,7 @@
+[
+  { "type": "n8n-nodes-base.httpRequest", "displayName": "HTTP Request", "description": "Makes HTTP requests", "version": 1 },
+  { "type": "n8n-nodes-base.set", "displayName": "Set", "description": "Sets values on items", "version": 1 },
+  { "type": "n8n-nodes-base.if", "displayName": "IF", "description": "Routes items based on condition", "version": 1 },
+  { "type": "n8n-nodes-coolpackage.myNode", "displayName": "Cool Node", "description": "Community node", "version": 1 },
+  { "type": "custom.specialNode", "displayName": "Special Node", "description": "Custom installed node", "version": 1 }
+]

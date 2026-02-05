@@ -1,0 +1,170 @@
+# New Workflow Implementation
+# Phase 3: Development
+# Agent: Developer
+# Trigger: NW
+
+workflow:
+  id: new-workflow
+  name: "New Workflow"
+  trigger: "NW"
+  phase: "3-development"
+  agent: "developer"
+  description: "Start implementing a new n8n workflow"
+
+purpose: |
+  Guide the developer through creating a new n8n workflow from
+  specification to implementation.
+
+inputs:
+  - name: workflow_name
+    description: "Name for the new workflow"
+    required: true
+
+  - name: story_id
+    description: "Associated story ID (optional)"
+    required: false
+
+  - name: spec_path
+    description: "Path to workflow specification"
+    required: false
+
+steps:
+  1_setup:
+    description: "Setup workflow basics"
+    actions:
+      - Determine workflow name following conventions
+      - Create or load specification
+      - Identify trigger type
+    naming_convention: |
+      Format: wf_{domain}_{action}_{detail}
+      Example: wf_crm_sync_contacts
+
+  2_configure_trigger:
+    description: "Configure the trigger node"
+    trigger_types:
+      webhook:
+        considerations:
+          - Authentication method
+          - Payload validation
+          - Response configuration
+        template: |
+          - Type: Webhook
+          - Path: /webhook/{path}
+          - Method: POST
+          - Auth: {auth_type}
+
+      schedule:
+        considerations:
+          - Frequency
+          - Timezone
+          - Retry on failure
+        template: |
+          - Type: Schedule Trigger
+          - Cron: {cron_expression}
+          - Timezone: {timezone}
+
+      manual:
+        considerations:
+          - When to use
+          - Input data
+        template: |
+          - Type: Manual Trigger
+          - Use: Testing, on-demand runs
+
+  3_implement_nodes:
+    description: "Add and configure nodes"
+    best_practices:
+      - Descriptive node names
+      - Add notes for complex logic
+      - Group related nodes
+      - Use consistent error handling
+    node_categories:
+      - Input validation
+      - Data retrieval
+      - Transformation
+      - Business logic
+      - Output/action
+      - Error handling
+
+  4_add_error_handling:
+    description: "Implement error handling"
+    patterns:
+      error_workflow:
+        when: "Centralized error handling"
+        config: "Settings > Error Workflow"
+
+      try_catch:
+        when: "Specific error handling per operation"
+        implementation: |
+          Use IF node after risky operation
+          Check $json.error or execution status
+
+      retry:
+        when: "Transient failures (API timeouts)"
+        implementation: |
+          Use retry settings on HTTP nodes
+          Or implement custom retry loop
+
+  5_test:
+    description: "Test the workflow"
+    test_types:
+      - Manual execution with test data
+      - Edge case testing
+      - Error scenario testing
+      - Performance testing (if needed)
+    verification:
+      - Data flows correctly
+      - Errors handled properly
+      - Output matches specification
+
+  6_document:
+    description: "Document the workflow"
+    elements:
+      - Workflow description in n8n
+      - Notes on complex nodes
+      - README or spec file update
+      - Update story with implementation notes
+
+output:
+  workflow_created: true
+  spec_path: "./docs/specs/wf_{name}-spec.md"
+
+instructions: |
+  ## New Workflow Instructions
+
+  1. **Gather Requirements**
+     - Ask for workflow name
+     - Check for associated story/spec
+     - Understand trigger type and data flow
+
+  2. **Setup**
+     - Follow naming convention: wf_{domain}_{action}
+     - Create in n8n or provide node configuration
+
+  3. **Implementation Order**
+     - Configure trigger first
+     - Add input validation
+     - Implement main logic
+     - Add error handling
+     - Configure outputs
+
+  4. **Best Practices**
+     - Use descriptive node names (not "HTTP Request 1")
+     - Add notes for complex expressions
+     - Implement error handling for all external calls
+     - Test with realistic data
+
+  5. **Completion**
+     - Test all scenarios
+     - Document the workflow
+     - Update story progress (UP trigger)
+
+checklist:
+  - Workflow name follows convention
+  - Trigger configured correctly
+  - All nodes have descriptive names
+  - Error handling implemented
+  - Tested with sample data
+  - Edge cases tested
+  - Documentation added
+  - Story progress updated

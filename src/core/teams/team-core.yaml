@@ -1,0 +1,34 @@
+# n8n Core Development Team
+# Standard team for workflow automation projects
+
+bundle:
+  name: n8n Core Team
+  icon: 🔄
+  description: |
+    Core team for n8n workflow automation projects. Covers the full
+    development lifecycle from requirements through deployment.
+
+agents:
+  - n8n-master    # Atlas - Orchestration and routing
+  - developer     # Nate - Workflow implementation
+  - architect     # Winston - Design and patterns
+  - qa            # Quinn - Testing and quality
+  - devops        # Rex - Deployment and operations
+
+# Recommended workflow
+workflow:
+  simple_task:
+    - "QS (Quick Spec) → DS (Dev Story) → CR (Code Review)"
+
+  standard_task:
+    - "architect: CA (Create Architecture)"
+    - "developer: NW (New Workflow) → UP (Update Progress)"
+    - "qa: TP (Test Plan) → RT (Run Tests)"
+    - "devops: DW (Deploy)"
+
+# When to use this team
+use_cases:
+  - "Single workflow implementation"
+  - "Technical spikes and PoCs"
+  - "Bug fixes and enhancements"
+  - "Small team projects"

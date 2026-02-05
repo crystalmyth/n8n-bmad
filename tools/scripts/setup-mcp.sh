@@ -17,7 +17,7 @@ NC='\033[0m' # No Color
 check_env() {
     if [ -z "$N8N_INSTANCE_URL" ]; then
         echo -e "${YELLOW}Warning: N8N_INSTANCE_URL not set${NC}"
-        read -p "Enter your n8n instance URL (e.g., http://localhost:5678): " N8N_INSTANCE_URL
+        read -p "Enter your n8n instance URL (e.g., http://localhost:5678/api/v1): " N8N_INSTANCE_URL
     fi
 
     if [ -z "$N8N_API_KEY" ]; then
@@ -59,7 +59,7 @@ create_mcp_config() {
   "servers": {
     "n8n": {
       "command": "npx",
-      "args": ["-y", "@anthropic/mcp-server-n8n"],
+      "args": ["-y", "n8n-mcp"],
       "env": {
         "N8N_API_URL": "\${N8N_INSTANCE_URL}",
         "N8N_API_KEY": "\${N8N_API_KEY}"

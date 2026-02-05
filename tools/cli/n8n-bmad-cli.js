@@ -19,6 +19,10 @@ const initCommand = require('./commands/init');
 const agentCommand = require('./commands/agent');
 const templateCommand = require('./commands/template');
 const validateCommand = require('./commands/validate');
+const workflowCommand = require('./commands/workflow');
+const partyCommand = require('./commands/party');
+const contextCommand = require('./commands/context');
+const nodesCommand = require('./commands/nodes');
 
 // Import utilities
 const { loadConfig } = require('./lib/config-loader');
@@ -80,6 +84,10 @@ function createProgram() {
   program.addCommand(agentCommand);
   program.addCommand(templateCommand);
   program.addCommand(validateCommand);
+  program.addCommand(workflowCommand);
+  program.addCommand(partyCommand);
+  program.addCommand(contextCommand);
+  program.addCommand(nodesCommand);
 
   // Custom help header with ASCII art banner
   program.addHelpText('beforeAll', () => {
@@ -89,18 +97,29 @@ function createProgram() {
   // Custom help footer
   program.addHelpText('after', `
 ${chalk.bold('Examples:')}
-  ${chalk.cyan('n8n-bmad init')}                  Initialize a new n8n-BMAD project
-  ${chalk.cyan('n8n-bmad agent list')}            List all available agents
-  ${chalk.cyan('n8n-bmad agent load developer')}  Load the developer agent
-  ${chalk.cyan('n8n-bmad template list')}         List all available templates
-  ${chalk.cyan('n8n-bmad validate workflow')}     Validate workflow JSON
-  ${chalk.cyan('n8n-bmad --help')}                Show this help message
+  ${chalk.cyan('n8n-bmad init')}                    Initialize a new n8n-BMAD project
+  ${chalk.cyan('n8n-bmad agent list')}              List all available agents
+  ${chalk.cyan('n8n-bmad agent load developer')}    Load the developer agent
+  ${chalk.cyan('n8n-bmad workflow run QS')}         Run Quick Spec workflow
+  ${chalk.cyan('n8n-bmad workflow triggers')}       Show all workflow triggers
+  ${chalk.cyan('n8n-bmad party list')}              List multi-agent party modes
+  ${chalk.cyan('n8n-bmad party start arch-review')} Start architecture review party
+  ${chalk.cyan('n8n-bmad template list')}           List all available templates
+  ${chalk.cyan('n8n-bmad validate workflow')}       Validate workflow JSON
+
+${chalk.bold('Quick Workflow Triggers:')}
+  ${chalk.cyan('[QS]')} Quick Spec   ${chalk.cyan('[DS]')} Dev Story   ${chalk.cyan('[CR]')} Code Review
+  ${chalk.cyan('[CP]')} Create PRD   ${chalk.cyan('[CS]')} Story       ${chalk.cyan('[SP]')} Sprint Plan
+
+${chalk.bold('Party Modes:')}
+  ${chalk.cyan('[AR]')} Architecture Review   ${chalk.cyan('[RF]')} Story Refinement
+  ${chalk.cyan('[SA]')} Security Audit        ${chalk.cyan('[ID]')} Integration Design
 
 ${chalk.bold('Documentation:')}
-  ${chalk.gray('https://github.com/your-org/n8n-bmad#readme')}
+  ${chalk.gray('https://github.com/crystalmyth/n8n-bmad#readme')}
 
 ${chalk.bold('Report Issues:')}
-  ${chalk.gray('https://github.com/your-org/n8n-bmad/issues')}
+  ${chalk.gray('https://github.com/crystalmyth/n8n-bmad/issues')}
 `);
 
   // Error handling

@@ -47,7 +47,10 @@ jobs:
       - name: Validate agent YAML files
         run: |
           echo "Validating agent YAML files..."
-          npm exec -- js-yaml src/core/agents/*.yaml > /dev/null
+          for file in src/core/agents/*.yaml; do
+            echo "Validating: $file"
+            npm exec -- js-yaml "$file" > /dev/null
+          done
           echo "All agent YAML files are valid"
 
       - name: Validate module configuration
@@ -85,7 +88,7 @@ jobs:
         run: npm ci
 
       - name: Run ESLint
-        run: npm run lint || true
+        run: npm run lint
 
   test:
     runs-on: ubuntu-latest
@@ -104,7 +107,7 @@ jobs:
         run: npm ci
 
       - name: Run tests
-        run: npm test || true
+        run: npm test
 
       - name: Upload coverage
         uses: codecov/codecov-action@v3
