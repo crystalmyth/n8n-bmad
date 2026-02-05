@@ -47,7 +47,10 @@ jobs:
       - name: Validate agent YAML files
         run: |
           echo "Validating agent YAML files..."
-          npm exec -- js-yaml src/core/agents/*.yaml > /dev/null
+          for file in src/core/agents/*.yaml; do
+            echo "Validating: $file"
+            npm exec -- js-yaml "$file" > /dev/null
+          done
           echo "All agent YAML files are valid"
 
       - name: Validate module configuration
